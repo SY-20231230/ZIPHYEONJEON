@@ -2,10 +2,10 @@ import axios from 'axios';
 
 const API_BASE_URL = '/api/price';
 
-export const searchByComplexName = async (complexName) => {
+export const searchByComplexName = async (complexName, dealType) => {
     try {
         const response = await axios.get(`${API_BASE_URL}/search/complex`, {
-            params: { complexName }
+            params: { complexName, dealType }
         });
         return response.data;
     } catch (error) {
@@ -14,10 +14,10 @@ export const searchByComplexName = async (complexName) => {
     }
 };
 
-export const searchBySpecificAddress = async (address) => {
+export const searchBySpecificAddress = async (address, dealType) => {
     try {
         const response = await axios.get(`${API_BASE_URL}/search`, {
-            params: { address }
+            params: { address, dealType }
         });
         return response.data;
     } catch (error) {

@@ -5,7 +5,12 @@ import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class VworldSearchResponse {
-    public Result result;
+    public Response response;
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Response {
+        public Result result;
+    }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Result {
@@ -15,11 +20,14 @@ public class VworldSearchResponse {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Item {
         public String title;
-        public String address;
-        public String road;    // 있을 수도
-        public String parcel;  // 있을 수도
-        public String pnu;     // ⭐ 중요 (문서/응답에 따라 키명이 다를 수 있음)
-        public String x;
-        public String y;
+        public String id; // This is PNU in parcel search
+        public Address address;
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Address {
+        public String road;
+        public String parcel;
+        public String bldnm;
     }
 }

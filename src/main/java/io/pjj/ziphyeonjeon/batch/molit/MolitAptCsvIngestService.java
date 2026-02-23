@@ -166,7 +166,17 @@ public class MolitAptCsvIngestService {
                 e.setBonbun(get(header, row, "본번"));
                 e.setBubun(get(header, row, "부번"));
                 e.setBuildingName(get(header, row, "건물명"));
-                e.setRentType(get(header, row, "전월세구분"));
+                String rentType = get(header, row, "전월세구분");
+                if (rentType == null) {
+                    Long monthly = toLongAmount(get(header, row, "월세(만원)", "월세금(만원)"));
+                    rentType = (monthly != null && monthly > 0) ? "WOLSE" : "JEONSE";
+                } else {
+                    if (rentType.contains("월"))
+                        rentType = "WOLSE";
+                    else
+                        rentType = "JEONSE";
+                }
+                e.setRentType(rentType);
                 e.setExclArea(toDecimal(get(header, row, "전용면적(㎡)", "전용면적")));
                 e.setContractYm(toInt(get(header, row, "계약년월")));
                 e.setContractDay(toInt(get(header, row, "계약일")));
@@ -282,7 +292,17 @@ public class MolitAptCsvIngestService {
                 e.setBonbun(get(header, row, "본번"));
                 e.setBubun(get(header, row, "부번"));
                 e.setComplexName(get(header, row, "단지명"));
-                e.setRentType(get(header, row, "전월세구분"));
+                String rentType = get(header, row, "전월세구분");
+                if (rentType == null) {
+                    Long monthly = toLongAmount(get(header, row, "월세(만원)", "월세금(만원)"));
+                    rentType = (monthly != null && monthly > 0) ? "WOLSE" : "JEONSE";
+                } else {
+                    if (rentType.contains("월"))
+                        rentType = "WOLSE";
+                    else
+                        rentType = "JEONSE";
+                }
+                e.setRentType(rentType);
                 e.setExclArea(toDecimal(get(header, row, "전용면적(㎡)", "전용면적")));
                 e.setContractYm(toInt(get(header, row, "계약년월")));
                 e.setContractDay(toInt(get(header, row, "계약일")));

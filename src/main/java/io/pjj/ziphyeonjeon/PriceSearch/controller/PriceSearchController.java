@@ -18,13 +18,17 @@ public class PriceSearchController {
     private final PriceSearchService priceSearchService;
 
     @GetMapping("/search")
-    public List<PriceSearchResultResponse> searchByAddress(@RequestParam String address) {
-        return priceSearchService.searchByAddress(address);
+    public List<PriceSearchResultResponse> searchByAddress(
+            @RequestParam String address,
+            @RequestParam(required = false) String dealType) {
+        return priceSearchService.searchByAddress(address, dealType);
     }
 
     @GetMapping("/search/complex")
-    public List<PriceSearchResultResponse> searchByComplexName(@RequestParam String complexName) {
-        return priceSearchService.searchByComplexName(complexName);
+    public List<PriceSearchResultResponse> searchByComplexName(
+            @RequestParam String complexName,
+            @RequestParam(required = false) String dealType) {
+        return priceSearchService.searchByComplexName(complexName, dealType);
     }
 
     // P-001

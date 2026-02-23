@@ -4,7 +4,6 @@ import io.pjj.ziphyeonjeon.global.API.common.ExternalApiProperties;
 import io.pjj.ziphyeonjeon.global.API.vworld.dto.search.VworldSearchResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
 public class VworldSearchClient {
@@ -14,38 +13,36 @@ public class VworldSearchClient {
 
     public VworldSearchClient(ExternalApiProperties props) {
         this.props = props;
-        this.webClient = WebClient.builder().baseUrl(props.getVworld().getSearchBaseUrl()).build();
+        this.webClient = WebClient.builder().baseUrl(props.getVworld().getBaseUrl()).build();
     }
 
     public VworldSearchResponse searchJuso(String query) {
-        // category=Juso (도로명주소)
-        String uri = UriComponentsBuilder.fromPath("/search.do")
-                .queryParam("category", "Juso")
-                .queryParam("q", query)
-                .queryParam("output", "json")
-                .queryParam("pageUnit", 10)
-                .queryParam("pageIndex", 1)
-                .queryParam("apiKey", props.getVworld().getApiKey())
-                .build(true)
-                .toUriString();
-
-        return webClient.get().uri(uri).retrieve()
+        return webClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/req/search")
+                        .queryParam("service", "search")
+                        .queryParam("request", "search")
+                        .queryParam("crs", "EPSG:4326")
+                        .queryParam("query", query)
+                        .queryParam("type", "address")
+                        .queryParam("category", "road")
+                        .queryParam("key", props.getVworld().getApiKey())
+                        .build())
+                .retrieve()
                 .bodyToMono(VworldSearchResponse.class).block();
     }
 
     public VworldSearchResponse searchJibun(String query) {
-        // category=Jibun (지번)
-        String uri = UriComponentsBuilder.fromPath("/search.do")
-                .queryParam("category", "Jibun")
-                .queryParam("q", query)
-                .queryParam("output", "json")
-                .queryParam("pageUnit", 10)
-                .queryParam("pageIndex", 1)
-                .queryParam("apiKey", props.getVworld().getApiKey())
-                .build(true)
-                .toUriString();
-
-        return webClient.get().uri(uri).retrieve()
+        return webClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/req/search")
+                        .queryParam("service", "search")
+                        .queryParam("request", "search")
+                        .queryParam("crs", "EPSG:4326")
+                        .queryParam("query", query)
+                        .queryParam("type", "address")
+                        .queryParam("category", "parcel")
+                        .queryParam("key", props.getVworld().getApiKey())
+                        .build())
+                .retrieve()
                 .bodyToMono(VworldSearchResponse.class).block();
     }
 }

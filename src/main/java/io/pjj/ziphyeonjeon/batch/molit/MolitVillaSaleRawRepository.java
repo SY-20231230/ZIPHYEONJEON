@@ -18,9 +18,12 @@ public interface MolitVillaSaleRawRepository extends JpaRepository<MolitVillaSal
         List<MolitVillaSaleRawEntity> findBySigunguContainingAndBeonjiContainingOrderByContractYmDescContractDayDesc(
                         String sigungu, String beonji);
 
+        List<MolitVillaSaleRawEntity> findByBuildingNameContainingAndContractYmGreaterThanEqualOrderByContractYmDescContractDayDesc(
+                        String buildingName, Integer startYm);
+
         @Query("SELECT AVG(m.dealAmountMan) FROM MolitVillaSaleRawEntity m " +
-                        "WHERE m.sigungu = :sigungu " +
-                        "AND m.beonji LIKE %:dong% " +
+                        "WHERE m.sigungu LIKE %:sigungu% " +
+                        "AND (m.beonji LIKE %:dong% OR m.sigungu LIKE %:dong%) " +
                         "AND m.exclArea BETWEEN :minArea AND :maxArea")
         Double findAverageDealAmount(@org.springframework.data.repository.query.Param("sigungu") String sigungu,
                         @org.springframework.data.repository.query.Param("dong") String dong,
@@ -29,8 +32,8 @@ public interface MolitVillaSaleRawRepository extends JpaRepository<MolitVillaSal
 
         @Query("SELECT m.contractYm, AVG(m.dealAmountMan / m.exclArea) " +
                         "FROM MolitVillaSaleRawEntity m " +
-                        "WHERE m.sigungu = :sigungu " +
-                        "AND m.beonji LIKE %:dong% " +
+                        "WHERE m.sigungu LIKE %:sigungu% " +
+                        "AND (m.beonji LIKE %:dong% OR m.sigungu LIKE %:dong%) " +
                         "GROUP BY m.contractYm " +
                         "ORDER BY m.contractYm ASC")
         List<Object[]> findMonthlyAverageUnitPrice(

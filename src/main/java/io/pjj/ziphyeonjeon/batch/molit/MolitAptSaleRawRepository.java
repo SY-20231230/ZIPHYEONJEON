@@ -28,8 +28,8 @@ public interface MolitAptSaleRawRepository extends JpaRepository<MolitAptSaleRaw
                         String sigungu, String eupmyeondong, String bonbun);
 
         @Query("SELECT AVG(m.dealAmountMan) FROM MolitAptSaleRawEntity m " +
-                        "WHERE m.sigungu = :sigungu " +
-                        "AND m.eupmyeondong LIKE %:dong% " +
+                        "WHERE m.sigungu LIKE %:sigungu% " +
+                        "AND (m.eupmyeondong LIKE %:dong% OR m.sigungu LIKE %:dong%) " +
                         "AND m.exclusiveAreaM2 BETWEEN :minArea AND :maxArea")
         Double findAverageDealAmount(@Param("sigungu") String sigungu,
                         @Param("dong") String dong,
@@ -38,8 +38,8 @@ public interface MolitAptSaleRawRepository extends JpaRepository<MolitAptSaleRaw
 
         @Query("SELECT m.contractYyyymm, AVG(m.dealAmountMan / m.exclusiveAreaM2) " +
                         "FROM MolitAptSaleRawEntity m " +
-                        "WHERE m.sigungu = :sigungu " +
-                        "AND m.eupmyeondong LIKE %:dong% " +
+                        "WHERE m.sigungu LIKE %:sigungu% " +
+                        "AND (m.eupmyeondong LIKE %:dong% OR m.sigungu LIKE %:dong%) " +
                         "GROUP BY m.contractYyyymm " +
                         "ORDER BY m.contractYyyymm ASC")
         List<Object[]> findMonthlyAverageUnitPrice(@Param("sigungu") String sigungu, @Param("dong") String dong);

@@ -5,8 +5,14 @@ import java.math.BigDecimal;
 
 @Data
 public class PriceSuggestionRequest {
-    // Spec: address, area_m2, market_data
+    // 기존 호환
     private String address;
+
+    // 구조화된 주소 + 유형 (신규)
+    private String sigungu; // 예: "서초구"
+    private String dong; // 예: "반포동"
+    private String propertyType; // "아파트", "빌라", "오피스텔"
+
     private BigDecimal area_m2;
 
     // 사용자가 입력하는 매물 상세 정보 (보정 계수 산출용)

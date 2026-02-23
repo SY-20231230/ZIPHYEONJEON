@@ -11,7 +11,8 @@ const RealTradeSearch = () => {
         buildingType: '아파트',
         dealYearMonth: '202412', // Default
         complexName: '',
-        specificAddress: ''
+        specificAddress: '',
+        dealType: '' // '' (All), '매매', '전세', '월세'
     });
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -37,7 +38,8 @@ const RealTradeSearch = () => {
                 const params = {
                     sigungu_name: formData.sigunguName,
                     building_type: formData.buildingType,
-                    deal_year_month: formData.dealYearMonth
+                    deal_year_month: formData.dealYearMonth,
+                    deal_type: formData.dealType
                 };
                 data = await searchMolitTrade(params);
             } else if (searchMode === 'complex') {
@@ -46,14 +48,14 @@ const RealTradeSearch = () => {
                     setLoading(false);
                     return;
                 }
-                data = await searchByComplexName(formData.complexName);
+                data = await searchByComplexName(formData.complexName, formData.dealType);
             } else if (searchMode === 'address') {
                 if (!formData.specificAddress) {
                     alert('주소를 입력해주세요.');
                     setLoading(false);
                     return;
                 }
-                data = await searchBySpecificAddress(formData.specificAddress);
+                data = await searchBySpecificAddress(formData.specificAddress, formData.dealType);
             }
 
             setResults(data);
@@ -151,7 +153,31 @@ const RealTradeSearch = () => {
                     />
                 )}
 
-                <Button onClick={handleSearch} disabled={loading} style={{ marginTop: '24px' }}>
+                <div className="form-group" style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
+                    <label style={{ fontSize: '14px', fontWeight: 'bold', marginRight: '5px' }}>거래 유형</label>
+                    <div style={{ display: 'flex', gap: '5px' }}>
+                        {['', '매매', '전세', '월세'].map(type => (
+                            <button
+                                key={type}
+                                onClick={() => setFormData(prev => ({ ...prev, dealType: type }))}
+                                style={{
+                                    padding: '5px 12px',
+                                    fontSize: '13px',
+                                    border: '1px solid #ddd',
+                                    borderRadius: '15px',
+                                    background: formData.dealType === type ? '#6c757d' : 'white',
+                                    color: formData.dealType === type ? 'white' : '#555',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                {type === '' ? '전체' : type}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <Button onClick={handleSearch} disabled={loading} style={{ height: '40px', display: 'flex', alignItems: 'center' }}>
                     {loading ? '검색 중...' : '조회'}
                 </Button>
             </div>
@@ -165,6 +191,7 @@ const RealTradeSearch = () => {
                             <tr style={{ background: '#f5f5f5', borderBottom: '2px solid #ddd' }}>
                                 <th style={{ padding: '10px', textAlign: 'left' }}>단지명/건물명</th>
                                 <th style={{ padding: '10px', textAlign: 'left' }}>주소</th>
+                                <th style={{ padding: '10px', textAlign: 'center' }}>거래유형</th>
                                 <th style={{ padding: '10px', textAlign: 'right' }}>전용면적</th>
                                 <th style={{ padding: '10px', textAlign: 'right' }}>거래금액(만원)</th>
                                 <th style={{ padding: '10px', textAlign: 'center' }}>계약일</th>
@@ -175,9 +202,23 @@ const RealTradeSearch = () => {
                                 <tr key={index} style={{ borderBottom: '1px solid #eee' }}>
                                     <td style={{ padding: '10px' }}>{item.complexName || '-'}</td>
                                     <td style={{ padding: '10px' }}>{item.sigungu} {item.jibun}</td>
+                                    <td style={{ padding: '10px', textAlign: 'center' }}>
+                                        <span style={{
+                                            padding: '2px 8px',
+                                            borderRadius: '10px',
+                                            fontSize: '12px',
+                                            fontWeight: 'bold',
+                                            background: item.dealType === '매매' ? '#fff3cd' : (item.dealType === '전세' ? '#cfe2ff' : '#d1e7dd'),
+                                            color: item.dealType === '매매' ? '#856404' : (item.dealType === '전세' ? '#084298' : '#0f5132'),
+                                            border: `1px solid ${item.dealType === '매매' ? '#ffeeba' : (item.dealType === '전세' ? '#b6d4fe' : '#badbcc')}`
+                                        }}>
+                                            {item.dealType}
+                                        </span>
+                                    </td>
                                     <td style={{ padding: '10px', textAlign: 'right' }}>{item.exclusiveArea}㎡</td>
                                     <td style={{ padding: '10px', textAlign: 'right', fontWeight: 'bold', color: '#0056b3' }}>
                                         {item.dealAmountMan?.toLocaleString()}
+                                        {item.dealType === '월세' && item.monthlyRentMan && ` / ${item.monthlyRentMan}`}
                                     </td>
                                     <td style={{ padding: '10px', textAlign: 'center' }}>
                                         {item.contractYm}.{item.contractDay}

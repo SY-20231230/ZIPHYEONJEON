@@ -6,6 +6,8 @@ import io.pjj.ziphyeonjeon.global.API.vworld.VworldSearchClient;
 import io.pjj.ziphyeonjeon.global.API.vworld.dto.geocode.VworldGeocodeResponse;
 import io.pjj.ziphyeonjeon.global.API.vworld.dto.search.VworldSearchResponse;
 import io.pjj.ziphyeonjeon.global.API.vworld.landprice.VworldOfficialLandPriceClient;
+import io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceSearchResultResponse;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -55,14 +57,16 @@ public class PriceSearchService {
         VworldSearchResponse search = vworldSearchClient.searchJuso(address);
         String pnu = null;
 
-        if (search != null && search.result != null && search.result.items != null && !search.result.items.isEmpty()) {
-            pnu = search.result.items.get(0).pnu;
+        if (search != null && search.response != null && search.response.result != null
+                && search.response.result.items != null && !search.response.result.items.isEmpty()) {
+            pnu = search.response.result.items.get(0).id;
         }
         if (pnu == null) {
             VworldSearchResponse search2 = vworldSearchClient.searchJibun(address);
-            if (search2 != null && search2.result != null && search2.result.items != null
-                    && !search2.result.items.isEmpty()) {
-                pnu = search2.result.items.get(0).pnu;
+            if (search2 != null && search2.response != null && search2.response.result != null
+                    && search2.response.result.items != null
+                    && !search2.response.result.items.isEmpty()) {
+                pnu = search2.response.result.items.get(0).id;
             }
         }
 
@@ -89,32 +93,49 @@ public class PriceSearchService {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PriceSearchService.class);
 
     public java.util.List<io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceSearchResultResponse> searchByAddress(
-            String rawAddress) {
+            String rawAddress, String dealType) {
         log.info("Searching by address: {}", rawAddress);
         java.util.List<io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceSearchResultResponse> results = new java.util.ArrayList<>();
 
-        // 1. Vworld 주소 검색 (정제)
+        boolean isJibun = rawAddress.matches(".*[동읍면]\\s*\\d+.*");
         VworldSearchResponse search = null;
         try {
-            search = vworldSearchClient.searchJuso(rawAddress);
+            if (isJibun) {
+                search = vworldSearchClient.searchJibun(rawAddress);
+                if (search == null || search.response == null || search.response.result == null
+                        || search.response.result.items == null
+                        || search.response.result.items.isEmpty()) {
+                    log.info("Jibun search failed for {}, trying Juso search...", rawAddress);
+                    search = vworldSearchClient.searchJuso(rawAddress);
+                }
+            } else {
+                search = vworldSearchClient.searchJuso(rawAddress);
+                if (search == null || search.response == null || search.response.result == null
+                        || search.response.result.items == null
+                        || search.response.result.items.isEmpty()) {
+                    log.info("Juso search failed for {}, trying Jibun search...", rawAddress);
+                    search = vworldSearchClient.searchJibun(rawAddress);
+                }
+            }
         } catch (Exception e) {
             log.error("Vworld search failed", e);
             // Vworld 실패 시에도 진행 가능한지? -> 주소 파싱 안되면 불가.
             return results;
         }
 
-        if (search == null || search.result == null || search.result.items == null || search.result.items.isEmpty()) {
-            log.warn("Vworld search returned no items for: {}", rawAddress);
+        if (search == null || search.response == null || search.response.result == null
+                || search.response.result.items == null || search.response.result.items.isEmpty()) {
+            log.warn("Vworld search returned no items for both Juso and Jibun: {}", rawAddress);
             return results;
         }
 
-        VworldSearchResponse.Item item = search.result.items.get(0);
-        String roadAddr = item.road; // "서울특별시 강남구 테헤란로 123"
-        String jibunAddr = item.parcel; // "서울특별시 강남구 역삼동 123-45"
+        VworldSearchResponse.Item item = search.response.result.items.get(0);
+        String roadAddr = item.address != null ? item.address.road : null;
+        String jibunAddr = item.address != null ? item.address.parcel : null;
         log.info("Vworld parsed: road={}, jibun={}", roadAddr, jibunAddr);
 
         // 파싱 로직
-        String sigungu = parseSigungu(jibunAddr != null ? jibunAddr : rawAddress);
+        String sigungu = parseSigungu(roadAddr, jibunAddr, rawAddress);
         String roadName = parseRoadName(roadAddr);
         String jibunBeonji = parseJibunBeonji(jibunAddr);
         log.info("Parsed conditions: sigungu={}, roadName={}, jibunBeonji={}", sigungu, roadName, jibunBeonji);
@@ -132,17 +153,29 @@ public class PriceSearchService {
             log.info("Searching with Sigungu: original='{}', used='{}'", sigungu, searchSigungu);
 
             try {
+                String searchDong = parseJibunDong(jibunAddr);
+
                 // (1) 아파트 매매
                 if (roadName != null) {
                     aptSaleRepo
                             .findBySigunguContainingAndRoadNameContainingOrderByContractYyyymmDescContractDayDesc(
                                     searchSigungu, roadName)
+                            .stream()
+                            .filter(e -> searchDong == null
+                                    || (e.getEupmyeondong() != null && e.getEupmyeondong().contains(searchDong))
+                                    || (e.getSigungu() != null && e.getSigungu().contains(searchDong)))
                             .forEach(e -> results.add(toDto(e)));
                 }
                 if (jibunBeonji != null) {
                     aptSaleRepo
                             .findBySigunguContainingAndJibunContainingOrderByContractYyyymmDescContractDayDesc(
                                     searchSigungu, jibunBeonji)
+                            .stream()
+                            .filter(e -> searchDong == null
+                                    || (e.getEupmyeondong() != null && e.getEupmyeondong().contains(searchDong))
+                                    || (e.getSigungu() != null && e.getSigungu().contains(searchDong)))
+                            .filter(e -> e.getJibun() != null && (e.getJibun().equals(jibunBeonji)
+                                    || e.getJibun().endsWith(" " + jibunBeonji) || e.getJibun().endsWith(jibunBeonji)))
                             .forEach(e -> results.add(toDto(e)));
 
                     // Fallback: JIBUN 컬럼이 정확지 않을 경우, 동 + 본번으로 검색 시도
@@ -172,12 +205,22 @@ public class PriceSearchService {
                     aptRentRepo
                             .findBySigunguContainingAndRoadNameContainingOrderByContractYyyymmDescContractDayDesc(
                                     searchSigungu, roadName)
+                            .stream()
+                            .filter(e -> searchDong == null
+                                    || (e.getEupmyeondong() != null && e.getEupmyeondong().contains(searchDong))
+                                    || (e.getSigungu() != null && e.getSigungu().contains(searchDong)))
                             .forEach(e -> results.add(toDto(e)));
                 }
                 if (jibunBeonji != null) {
                     aptRentRepo
                             .findBySigunguContainingAndJibunContainingOrderByContractYyyymmDescContractDayDesc(
                                     searchSigungu, jibunBeonji)
+                            .stream()
+                            .filter(e -> searchDong == null
+                                    || (e.getEupmyeondong() != null && e.getEupmyeondong().contains(searchDong))
+                                    || (e.getSigungu() != null && e.getSigungu().contains(searchDong)))
+                            .filter(e -> e.getJibun() != null && (e.getJibun().equals(jibunBeonji)
+                                    || e.getJibun().endsWith(" " + jibunBeonji) || e.getJibun().endsWith(jibunBeonji)))
                             .forEach(e -> results.add(toDto(e)));
                 }
 
@@ -186,19 +229,37 @@ public class PriceSearchService {
                     villaSaleRepo
                             .findBySigunguContainingAndRoadNameContainingOrderByContractYmDescContractDayDesc(
                                     searchSigungu, roadName)
+                            .stream()
+                            .filter(e -> searchDong == null
+                                    || (e.getSigungu() != null && e.getSigungu().contains(searchDong)))
                             .forEach(e -> results.add(toDto(e)));
                     officetelSaleRepo
                             .findBySigunguContainingAndRoadNameContainingOrderByContractYmDescContractDayDesc(
                                     searchSigungu, roadName)
+                            .stream()
+                            .filter(e -> searchDong == null
+                                    || (e.getSigungu() != null && e.getSigungu().contains(searchDong)))
                             .forEach(e -> results.add(toDto(e)));
                 }
                 if (jibunBeonji != null) {
                     villaSaleRepo.findBySigunguContainingAndBeonjiContainingOrderByContractYmDescContractDayDesc(
                             searchSigungu, jibunBeonji)
+                            .stream()
+                            .filter(e -> searchDong == null
+                                    || (e.getSigungu() != null && e.getSigungu().contains(searchDong)))
+                            .filter(e -> e.getBeonji() != null
+                                    && (e.getBeonji().equals(jibunBeonji) || e.getBeonji().endsWith(" " + jibunBeonji)
+                                            || e.getBeonji().endsWith(jibunBeonji)))
                             .forEach(e -> results.add(toDto(e)));
                     officetelSaleRepo
                             .findBySigunguContainingAndBeonjiContainingOrderByContractYmDescContractDayDesc(
                                     searchSigungu, jibunBeonji)
+                            .stream()
+                            .filter(e -> searchDong == null
+                                    || (e.getSigungu() != null && e.getSigungu().contains(searchDong)))
+                            .filter(e -> e.getBeonji() != null
+                                    && (e.getBeonji().equals(jibunBeonji) || e.getBeonji().endsWith(" " + jibunBeonji)
+                                            || e.getBeonji().endsWith(jibunBeonji)))
                             .forEach(e -> results.add(toDto(e)));
                 }
 
@@ -207,19 +268,37 @@ public class PriceSearchService {
                     villaRentRepo
                             .findBySigunguContainingAndRoadNameContainingOrderByContractYmDescContractDayDesc(
                                     searchSigungu, roadName)
+                            .stream()
+                            .filter(e -> searchDong == null
+                                    || (e.getSigungu() != null && e.getSigungu().contains(searchDong)))
                             .forEach(e -> results.add(toDto(e)));
                     officetelRentRepo
                             .findBySigunguContainingAndRoadNameContainingOrderByContractYmDescContractDayDesc(
                                     searchSigungu, roadName)
+                            .stream()
+                            .filter(e -> searchDong == null
+                                    || (e.getSigungu() != null && e.getSigungu().contains(searchDong)))
                             .forEach(e -> results.add(toDto(e)));
                 }
                 if (jibunBeonji != null) {
                     villaRentRepo.findBySigunguContainingAndBeonjiContainingOrderByContractYmDescContractDayDesc(
                             searchSigungu, jibunBeonji)
+                            .stream()
+                            .filter(e -> searchDong == null
+                                    || (e.getSigungu() != null && e.getSigungu().contains(searchDong)))
+                            .filter(e -> e.getBeonji() != null
+                                    && (e.getBeonji().equals(jibunBeonji) || e.getBeonji().endsWith(" " + jibunBeonji)
+                                            || e.getBeonji().endsWith(jibunBeonji)))
                             .forEach(e -> results.add(toDto(e)));
                     officetelRentRepo
                             .findBySigunguContainingAndBeonjiContainingOrderByContractYmDescContractDayDesc(
                                     searchSigungu, jibunBeonji)
+                            .stream()
+                            .filter(e -> searchDong == null
+                                    || (e.getSigungu() != null && e.getSigungu().contains(searchDong)))
+                            .filter(e -> e.getBeonji() != null
+                                    && (e.getBeonji().equals(jibunBeonji) || e.getBeonji().endsWith(" " + jibunBeonji)
+                                            || e.getBeonji().endsWith(jibunBeonji)))
                             .forEach(e -> results.add(toDto(e)));
                 }
             } catch (Exception e) {
@@ -233,6 +312,7 @@ public class PriceSearchService {
         log.info("Total results found: {}", results.size());
         return results.stream()
                 .distinct()
+                .filter(r -> dealType == null || dealType.trim().isEmpty() || dealType.trim().equals(r.getDealType()))
                 .sorted((a, b) -> {
                     int c = b.getContractYm().compareTo(a.getContractYm());
                     if (c == 0)
@@ -243,12 +323,63 @@ public class PriceSearchService {
     }
 
     // --- Helper Methods ---
-    private String parseSigungu(String addr) {
+    private String extractSigunguToken(String addr) {
         if (addr == null)
             return null;
         String[] tokens = addr.split(" ");
         if (tokens.length >= 2) {
-            return tokens[0] + " " + tokens[1]; // "서울특별시 강남구"
+            String t0 = tokens[0];
+            String t1 = tokens[1];
+            if ((t0.endsWith("도") || t0.endsWith("시") || t0.endsWith("특별자치도")) &&
+                    (t1.endsWith("구") || t1.endsWith("시") || t1.endsWith("군"))) {
+                return t0 + " " + t1;
+            }
+        }
+        if (tokens.length >= 1) {
+            String t0 = tokens[0];
+            if (t0.endsWith("구") || t0.endsWith("시") || t0.endsWith("군")) {
+                if (!t0.endsWith("특별시") && !t0.endsWith("광역시") && !t0.endsWith("도")) {
+                    return t0;
+                }
+            }
+        }
+        return null;
+    }
+
+    private String parseSigungu(String addr) {
+        String result = extractSigunguToken(addr);
+        if (result != null)
+            return result;
+
+        if (addr != null) {
+            String[] tokens = addr.split(" ");
+            if (tokens.length >= 2) {
+                return tokens[0] + " " + tokens[1];
+            }
+        }
+        return addr;
+    }
+
+    private String parseSigungu(String roadAddr, String jibunAddr, String rawAddress) {
+        String result = extractSigunguToken(jibunAddr);
+        if (result != null)
+            return result;
+
+        result = extractSigunguToken(roadAddr);
+        if (result != null)
+            return result;
+
+        result = extractSigunguToken(rawAddress);
+        if (result != null)
+            return result;
+
+        String fallback = jibunAddr != null ? jibunAddr : (roadAddr != null ? roadAddr : rawAddress);
+        if (fallback != null) {
+            String[] tokens = fallback.split(" ");
+            if (tokens.length >= 2) {
+                return tokens[0] + " " + tokens[1];
+            }
+            return fallback;
         }
         return null;
     }
@@ -302,9 +433,12 @@ public class PriceSearchService {
 
     private io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceSearchResultResponse toDto(
             io.pjj.ziphyeonjeon.batch.molit.MolitAptRentRawEntity e) {
+        long monthlyRent = e.getMonthlyRentMan() != null ? e.getMonthlyRentMan() : 0L;
+        String dealType = monthlyRent > 0 ? "월세" : "전세";
+
         return io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceSearchResultResponse.builder()
                 .propertyType("아파트")
-                .dealType("전월세") // or e.getRentType()
+                .dealType(dealType)
                 .contractYm(Integer.parseInt(e.getContractYyyymm()))
                 .contractDay(Integer.valueOf(e.getContractDay()))
                 .exclusiveArea(e.getExclusiveAreaM2())
@@ -340,14 +474,17 @@ public class PriceSearchService {
 
     private io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceSearchResultResponse toDto(
             io.pjj.ziphyeonjeon.batch.molit.MolitVillaRentRawEntity e) {
+        long monthlyRent = e.getMonthlyRentMan() != null ? e.getMonthlyRentMan() : 0L;
+        String dealType = monthlyRent > 0 ? "월세" : "전세";
+
         return io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceSearchResultResponse.builder()
                 .propertyType("연립다세대")
-                .dealType("전월세")
+                .dealType(dealType)
                 .contractYm(e.getContractYm())
                 .contractDay(Integer.valueOf(e.getContractDay()))
                 .exclusiveArea(e.getExclArea())
-                .dealAmountMan(e.getDepositMan() != null ? Long.valueOf(e.getDepositMan()) : null)
-                .monthlyRentMan(e.getMonthlyRentMan() != null ? Long.valueOf(e.getMonthlyRentMan()) : null)
+                .dealAmountMan(e.getDepositMan())
+                .monthlyRentMan(monthlyRent > 0 ? monthlyRent : null)
                 .floor(e.getFloorNo() != null ? Integer.valueOf(e.getFloorNo()) : null)
                 .builtYear(e.getBuiltYear() != null ? Integer.valueOf(e.getBuiltYear()) : null)
                 .sigungu(e.getSigungu())
@@ -377,14 +514,17 @@ public class PriceSearchService {
 
     private io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceSearchResultResponse toDto(
             io.pjj.ziphyeonjeon.batch.molit.MolitOfficetelRentRawEntity e) {
+        long monthlyRent = e.getMonthlyRentMan() != null ? e.getMonthlyRentMan() : 0L;
+        String dealType = monthlyRent > 0 ? "월세" : "전세";
+
         return io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceSearchResultResponse.builder()
                 .propertyType("오피스텔")
-                .dealType("전월세")
+                .dealType(dealType)
                 .contractYm(e.getContractYm())
                 .contractDay(Integer.valueOf(e.getContractDay()))
                 .exclusiveArea(e.getExclArea())
-                .dealAmountMan(e.getDepositMan() != null ? Long.valueOf(e.getDepositMan()) : null)
-                .monthlyRentMan(e.getMonthlyRentMan() != null ? Long.valueOf(e.getMonthlyRentMan()) : null)
+                .dealAmountMan(e.getDepositMan())
+                .monthlyRentMan(monthlyRent > 0 ? monthlyRent : null)
                 .floor(e.getFloorNo() != null ? Integer.valueOf(e.getFloorNo()) : null)
                 .builtYear(e.getBuiltYear() != null ? Integer.valueOf(e.getBuiltYear()) : null)
                 .sigungu(e.getSigungu())
@@ -488,19 +628,28 @@ public class PriceSearchService {
     public io.pjj.ziphyeonjeon.PriceSearch.dto.response.JeonseRatioResponse calculateJeonseRatio(
             io.pjj.ziphyeonjeon.PriceSearch.dto.request.JeonseRatioRequest request) {
         String address = request.getAddress();
-        String sigungu = parseSigungu(address);
-        String dong = parseJibunDong(address);
+
+        // 구조화된 주소 필드 우선 사용, 없으면 파싱 시도, 그래도 없으면 빈 문자열 (LIKE %% = 전체)
+        String sigungu = (request.getSigungu() != null && !request.getSigungu().isEmpty())
+                ? request.getSigungu()
+                : parseSigungu(address);
+        String dong = (request.getDong() != null && !request.getDong().isEmpty())
+                ? request.getDong()
+                : ""; // 빈 문자열 = LIKE '%%' = 전체 동 포함
+
         java.math.BigDecimal area = request.getExclusiveArea();
 
-        java.math.BigDecimal minArea = area.subtract(new java.math.BigDecimal("10"));
-        java.math.BigDecimal maxArea = area.add(new java.math.BigDecimal("10"));
+        java.math.BigDecimal margin = area.multiply(new java.math.BigDecimal("0.10")).setScale(2,
+                java.math.RoundingMode.HALF_UP);
+        java.math.BigDecimal minArea = area.subtract(margin);
+        java.math.BigDecimal maxArea = area.add(margin);
         if (minArea.compareTo(java.math.BigDecimal.ZERO) < 0)
             minArea = java.math.BigDecimal.ZERO;
 
         Double avgSale = 0.0;
         Double avgJeonse = 0.0;
 
-        if (sigungu != null && dong != null) {
+        if (sigungu != null && !sigungu.isEmpty()) {
             if (request.getPropertyType().contains("아파트")) {
                 avgSale = aptSaleRepo.findAverageDealAmount(sigungu, dong, minArea, maxArea);
                 avgJeonse = aptRentRepo.findAverageDeposit(sigungu, dong, minArea, maxArea);
@@ -543,16 +692,38 @@ public class PriceSearchService {
             myRatio = marketRatio;
         }
 
-        // 위험도 판정
-        String riskLevel = "SAFE";
-        String msg = "전세가율이 안정적입니다.";
+        // 위험도 판정 (5단계)
+        // - SUSPICIOUS_LOW: 비정상적으로 낮음 → 사기 의심
+        // - SAFE: 안전 (25~60%)
+        // - CAUTION: 주의 (60~70%)
+        // - HIGH_RISK: 고위험 (70~85%)
+        // - DANGER: 깡통전세 위험 (85%+)
+        String riskLevel;
+        String msg;
 
-        if (myRatio >= 80.0) {
-            riskLevel = "DANGER";
-            msg = String.format("위험! 전세가율이 %.1f%%로 깡통전세 위험이 매우 높습니다.", myRatio);
-        } else if (myRatio >= 60.0) {
+        if (myRatio < 25.0) {
+            riskLevel = "SUSPICIOUS_LOW";
+            msg = String.format(
+                    "⚠️ 전세가율이 %.1f%%로 시세 대비 비정상적으로 낮습니다. 불법 증축·권리 문제·경매 위험 매물일 수 있으니 등기부등본과 건축물대장을 반드시 확인하세요.",
+                    myRatio);
+        } else if (myRatio < 60.0) {
+            riskLevel = "SAFE";
+            msg = String.format("전세가율 %.1f%% — 인근 매매가 대비 안정적인 전세 금액입니다.", myRatio);
+        } else if (myRatio < 70.0) {
             riskLevel = "CAUTION";
-            msg = String.format("주의! 전세가율이 %.1f%%로 다소 높습니다.", myRatio);
+            msg = String.format(
+                    "전세가율 %.1f%% — 전세대출 한도(보통 70%%) 근접 구간입니다. 매매가 변동 시 보증금 회수가 어려울 수 있습니다.",
+                    myRatio);
+        } else if (myRatio < 85.0) {
+            riskLevel = "HIGH_RISK";
+            msg = String.format(
+                    "전세가율 %.1f%% — HUG 전세보증 가입 기준선(85%%)에 근접한 고위험 구간입니다. 전세보증보험 가입을 강력히 권장합니다.",
+                    myRatio);
+        } else {
+            riskLevel = "DANGER";
+            msg = String.format(
+                    "전세가율 %.1f%% — 깡통전세 위험! 매매가가 조금만 하락해도 보증금 전액 회수가 불가능할 수 있습니다. 계약을 재검토하세요.",
+                    myRatio);
         }
 
         return io.pjj.ziphyeonjeon.PriceSearch.dto.response.JeonseRatioResponse.builder()
@@ -570,7 +741,6 @@ public class PriceSearchService {
     public io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceTrendResponse getRegionalTrend(String address_code,
             String time_unit) {
         // 명세서의 address_code는 실제로는 행정동 코드일 수 있으나, 현재 DB 구조상 주소 문자열로 검색 지원
-        // time_unit은 "월" 기본값으로 처리
         String address = address_code;
         String sigungu = parseSigungu(address);
         String dong = parseJibunDong(address);
@@ -581,27 +751,39 @@ public class PriceSearchService {
             // 1. 아파트
             processTrendData(aptSaleRepo.findMonthlyAverageUnitPrice(sigungu, dong), trendMap,
                     (item, val) -> item.setAptSale(val));
-            processTrendData(aptRentRepo.findMonthlyAverageUnitPrice(sigungu, dong), trendMap,
-                    (item, val) -> item.setAptRent(val));
+            processTrendData(aptRentRepo.findMonthlyAverageJeonseUnitPrice(sigungu, dong), trendMap,
+                    (item, val) -> item.setAptJeonse(val));
+            processTrendData(aptRentRepo.findMonthlyAverageWolseAmount(sigungu, dong), trendMap,
+                    (item, val) -> item.setAptWolse(val));
 
             // 2. 빌라
             processTrendData(villaSaleRepo.findMonthlyAverageUnitPrice(sigungu, dong), trendMap,
                     (item, val) -> item.setVillaSale(val));
-            processTrendData(villaRentRepo.findMonthlyAverageUnitPrice(sigungu, dong), trendMap,
-                    (item, val) -> item.setVillaRent(val));
+            processTrendData(villaRentRepo.findMonthlyAverageJeonseUnitPrice(sigungu, dong), trendMap,
+                    (item, val) -> item.setVillaJeonse(val));
+            processTrendData(villaRentRepo.findMonthlyAverageWolseAmount(sigungu, dong), trendMap,
+                    (item, val) -> item.setVillaWolse(val));
 
             // 3. 오피스텔
             processTrendData(officetelSaleRepo.findMonthlyAverageUnitPrice(sigungu, dong), trendMap,
                     (item, val) -> item.setOfficetelSale(val));
-            processTrendData(officetelRentRepo.findMonthlyAverageUnitPrice(sigungu, dong), trendMap,
-                    (item, val) -> item.setOfficetelRent(val));
+            processTrendData(officetelRentRepo.findMonthlyAverageJeonseUnitPrice(sigungu, dong), trendMap,
+                    (item, val) -> item.setOfficetelJeonse(val));
+            processTrendData(officetelRentRepo.findMonthlyAverageWolseAmount(sigungu, dong), trendMap,
+                    (item, val) -> item.setOfficetelWolse(val));
         }
 
-        // Map -> List & Sort
-        java.util.List<io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceTrendResponse.TrendItem> trends = new java.util.ArrayList<>(
-                trendMap.values());
-        trends.sort(java.util.Comparator
-                .comparing(io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceTrendResponse.TrendItem::getPeriod));
+        // Filter: 202401 ~ 202512
+        java.util.List<io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceTrendResponse.TrendItem> trends = trendMap
+                .values().stream()
+                .filter(item -> {
+                    String p = item.getPeriod();
+                    return p != null && p.compareTo("202401") >= 0 && p.compareTo("202512") <= 0;
+                })
+                .sorted(java.util.Comparator
+                        .comparing(
+                                io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceTrendResponse.TrendItem::getPeriod))
+                .collect(Collectors.toList());
 
         return io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceTrendResponse.builder()
                 .regionName(sigungu + " " + dong)
@@ -646,47 +828,160 @@ public class PriceSearchService {
         String sigungu = request.getSigungu_name();
         String type = request.getBuilding_type();
         String yyyyMM = request.getDeal_year_month();
+        String dealType = request.getDeal_type();
 
         if (sigungu == null || type == null || yyyyMM == null) {
             return results;
         }
 
+        boolean includeSale = (dealType == null || dealType.isEmpty() || dealType.equals("전체")
+                || dealType.equals("매매"));
+        boolean includeRent = (dealType == null || dealType.isEmpty() || dealType.equals("전체")
+                || dealType.equals("전세") || dealType.equals("월세"));
+
         if (type.contains("아파트")) {
             // Apartment
-            java.util.List<io.pjj.ziphyeonjeon.batch.molit.MolitAptSaleRawEntity> entities = aptSaleRepo
-                    .findBySigunguContainingAndContractYyyymm(sigungu, yyyyMM);
-            entities.forEach(e -> results.add(toDto(e)));
+            if (includeSale) {
+                aptSaleRepo.findBySigunguContainingAndContractYyyymm(sigungu, yyyyMM)
+                        .forEach(e -> results.add(toDto(e)));
+            }
+            if (includeRent) {
+                aptRentRepo.findBySigunguContainingAndContractYyyymm(sigungu, yyyyMM)
+                        .forEach(e -> {
+                            PriceSearchResultResponse dto = toDto(e);
+                            if (dealType == null || dealType.isEmpty() || dealType.equals("전체")
+                                    || dealType.equals(dto.getDealType())) {
+                                results.add(dto);
+                            }
+                        });
+            }
 
         } else if (type.contains("빌라") || type.contains("연립") || type.contains("다세대")) {
             // Villa
             try {
                 Integer ym = Integer.parseInt(yyyyMM);
-                java.util.List<io.pjj.ziphyeonjeon.batch.molit.MolitVillaSaleRawEntity> entities = villaSaleRepo
-                        .findBySigunguContainingAndContractYm(sigungu, ym);
-                entities.forEach(e -> results.add(toDto(e)));
+                if (includeSale) {
+                    villaSaleRepo.findBySigunguContainingAndContractYm(sigungu, ym)
+                            .forEach(e -> results.add(toDto(e)));
+                }
+                if (includeRent) {
+                    villaRentRepo.findBySigunguContainingAndContractYm(sigungu, ym)
+                            .forEach(e -> {
+                                PriceSearchResultResponse dto = toDto(e);
+                                if (dealType == null || dealType.isEmpty() || dealType.equals("전체")
+                                        || dealType.equals(dto.getDealType())) {
+                                    results.add(dto);
+                                }
+                            });
+                }
             } catch (NumberFormatException e) {
                 // Invalid Date format
             }
         } else if (type.contains("오피스텔")) {
-            // Officetel (Skipped for now as repo update needed, return empty or implement
-            // later)
+            // Officetel
+            try {
+                Integer ym = Integer.parseInt(yyyyMM);
+                if (includeSale) {
+                    officetelSaleRepo.findBySigunguContainingAndContractYm(sigungu, ym)
+                            .forEach(e -> results.add(toDto(e)));
+                }
+                if (includeRent) {
+                    officetelRentRepo.findBySigunguContainingAndContractYm(sigungu, ym)
+                            .forEach(e -> {
+                                PriceSearchResultResponse dto = toDto(e);
+                                if (dealType == null || dealType.isEmpty() || dealType.equals("전체")
+                                        || dealType.equals(dto.getDealType())) {
+                                    results.add(dto);
+                                }
+                            });
+                }
+            } catch (NumberFormatException e) {
+                // Invalid Date format
+            }
         }
 
         return results;
     }
 
     public java.util.List<io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceSearchResultResponse> searchByComplexName(
-            String complexName) {
+            String complexName, String dealType) {
         log.info("Searching complex by name: {}", complexName);
         java.util.List<io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceSearchResultResponse> results = new java.util.ArrayList<>();
 
         try {
-            // 202401 이후 데이터 조회
-            java.util.List<io.pjj.ziphyeonjeon.batch.molit.MolitAptSaleRawEntity> entities = aptSaleRepo
+            // 1. 아파트 매매
+            aptSaleRepo
                     .findByComplexNameContainingAndContractYyyymmGreaterThanEqualOrderByContractYyyymmDescContractDayDesc(
-                            complexName, "202401");
-            log.info("Complex search found {} entities", entities.size());
-            entities.forEach(e -> results.add(toDto(e)));
+                            complexName, "202401")
+                    .forEach(e -> {
+                        PriceSearchResultResponse dto = toDto(e);
+                        if (dealType == null || dealType.trim().isEmpty()
+                                || dealType.trim().equals(dto.getDealType())) {
+                            results.add(dto);
+                        }
+                    });
+
+            // 2. 아파트 전월세
+            aptRentRepo
+                    .findByComplexNameContainingAndContractYyyymmGreaterThanEqualOrderByContractYyyymmDescContractDayDesc(
+                            complexName, "202401")
+                    .forEach(e -> {
+                        PriceSearchResultResponse dto = toDto(e);
+                        if (dealType == null || dealType.trim().isEmpty()
+                                || dealType.trim().equals(dto.getDealType())) {
+                            results.add(dto);
+                        }
+                    });
+
+            // 3. 오피스텔 매매
+            officetelSaleRepo
+                    .findByComplexNameContainingAndContractYmGreaterThanEqualOrderByContractYmDescContractDayDesc(
+                            complexName, 202401)
+                    .forEach(e -> {
+                        PriceSearchResultResponse dto = toDto(e);
+                        if (dealType == null || dealType.trim().isEmpty()
+                                || dealType.trim().equals(dto.getDealType())) {
+                            results.add(dto);
+                        }
+                    });
+
+            // 4. 오피스텔 전월세
+            officetelRentRepo
+                    .findByComplexNameContainingAndContractYmGreaterThanEqualOrderByContractYmDescContractDayDesc(
+                            complexName, 202401)
+                    .forEach(e -> {
+                        PriceSearchResultResponse dto = toDto(e);
+                        if (dealType == null || dealType.trim().isEmpty()
+                                || dealType.trim().equals(dto.getDealType())) {
+                            results.add(dto);
+                        }
+                    });
+
+            // 5. 빌라 매매
+            villaSaleRepo
+                    .findByBuildingNameContainingAndContractYmGreaterThanEqualOrderByContractYmDescContractDayDesc(
+                            complexName, 202401)
+                    .forEach(e -> {
+                        PriceSearchResultResponse dto = toDto(e);
+                        if (dealType == null || dealType.trim().isEmpty()
+                                || dealType.trim().equals(dto.getDealType())) {
+                            results.add(dto);
+                        }
+                    });
+
+            // 6. 빌라 전월세
+            villaRentRepo
+                    .findByBuildingNameContainingAndContractYmGreaterThanEqualOrderByContractYmDescContractDayDesc(
+                            complexName, 202401)
+                    .forEach(e -> {
+                        PriceSearchResultResponse dto = toDto(e);
+                        if (dealType == null || dealType.trim().isEmpty()
+                                || dealType.trim().equals(dto.getDealType())) {
+                            results.add(dto);
+                        }
+                    });
+
+            log.info("Complex search finished. Total results found: {}", results.size());
         } catch (Exception e) {
             log.error("Complex search failed", e);
         }
@@ -711,37 +1006,64 @@ public class PriceSearchService {
 
     // --- P-007: 실거래가 다운로드 (CSV) ---
     public org.springframework.core.io.Resource downloadTradeData(String sidoCode, String sigunguCode, String format) {
-        // 1. Code -> Name Mapping (Demo Stub)
-        String sigungu = "서울특별시 강남구"; // Default
-        if ("11680".equals(sigunguCode))
-            sigungu = "서울특별시 강남구";
-        else if ("11650".equals(sigunguCode))
-            sigungu = "서울특별시 서초구";
-        // ... 실제로는 DB나 API로 매핑 필요
+        // 1. Code -> Name Mapping (서울 25개 구)
+        java.util.Map<String, String> codeMap = new java.util.HashMap<>();
+        codeMap.put("11110", "서울특별시 종로구");
+        codeMap.put("11140", "서울특별시 중구");
+        codeMap.put("11170", "서울특별시 용산구");
+        codeMap.put("11200", "서울특별시 성동구");
+        codeMap.put("11215", "서울특별시 광진구");
+        codeMap.put("11230", "서울특별시 동대문구");
+        codeMap.put("11260", "서울특별시 중랑구");
+        codeMap.put("11290", "서울특별시 성북구");
+        codeMap.put("11305", "서울특별시 강북구");
+        codeMap.put("11320", "서울특별시 도봉구");
+        codeMap.put("11350", "서울특별시 노원구");
+        codeMap.put("11380", "서울특별시 은평구");
+        codeMap.put("11410", "서울특별시 서대문구");
+        codeMap.put("11440", "서울특별시 마포구");
+        codeMap.put("11470", "서울특별시 양천구");
+        codeMap.put("11500", "서울특별시 강서구");
+        codeMap.put("11530", "서울특별시 구로구");
+        codeMap.put("11545", "서울특별시 금천구");
+        codeMap.put("11560", "서울특별시 영등포구");
+        codeMap.put("11590", "서울특별시 동작구");
+        codeMap.put("11620", "서울특별시 관악구");
+        codeMap.put("11650", "서울특별시 서초구");
+        codeMap.put("11680", "서울특별시 강남구");
+        codeMap.put("11710", "서울특별시 송파구");
+        codeMap.put("11740", "서울특별시 강동구");
 
-        // 2. Data Fetch (Recent 100)
-        // Repo에 Sigungu로만 검색하는 메서드는 없으므로, 기존 메서드 활용하거나 새로 만듦.
-        // 여기서는 "테헤란로" 검색(임시) 또는 전체 검색이 필요하지만 성능상 "역삼동"으로 고정 샘플링하거나,
-        // 제대로 하려면 Repository에 `findBySigungu` 메서드를 추가해야 함.
-        // *시간 관계상, '역삼동' 데이터로 예시 출력.
+        String sigungu = codeMap.getOrDefault(sigunguCode, "서울특별시 강남구");
+
+        // 2. Data Fetch (해당 구의 아파트 매매 최근 데이터)
         java.util.List<io.pjj.ziphyeonjeon.batch.molit.MolitAptSaleRawEntity> list = aptSaleRepo
-                .findBySigunguContainingAndJibunContainingOrderByContractYyyymmDescContractDayDesc(sigungu, "역삼동");
+                .findBySigunguContainingAndContractYyyymm(sigungu, "202412");
 
-        // 3. Generate CSV
+        // 3. Generate CSV (UTF-8 with BOM - 엑셀 한글 깨짐 방지)
         StringBuilder csv = new StringBuilder();
-        csv.append("Year,Month,Day,Complex,Area(m2),Price(Unit:10000)\n");
+        csv.append("계약년월,계약일,단지명,시군구,지번,전용면적(㎡),거래금액(만원),층수,건축년도\n");
 
         for (io.pjj.ziphyeonjeon.batch.molit.MolitAptSaleRawEntity entity : list) {
-            csv.append(entity.getDataYear()).append(",")
-                    .append(entity.getDataMonth()).append(",")
+            csv.append(entity.getContractYyyymm()).append(",")
                     .append(entity.getContractDay()).append(",")
                     .append(escapeCsv(entity.getComplexName())).append(",")
+                    .append(escapeCsv(entity.getSigungu())).append(",")
+                    .append(escapeCsv(entity.getJibun())).append(",")
                     .append(entity.getExclusiveAreaM2()).append(",")
-                    .append(entity.getDealAmountMan()).append("\n");
+                    .append(entity.getDealAmountMan()).append(",")
+                    .append(entity.getFloorNo()).append(",")
+                    .append(entity.getBuiltYear()).append("\n");
         }
 
-        return new org.springframework.core.io.ByteArrayResource(
-                csv.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        // BOM(0xEF,0xBB,0xBF) + UTF-8 본문 = 엑셀에서 한글 정상 출력
+        byte[] bom = new byte[] { (byte) 0xEF, (byte) 0xBB, (byte) 0xBF };
+        byte[] body = csv.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        byte[] result = new byte[bom.length + body.length];
+        System.arraycopy(bom, 0, result, 0, bom.length);
+        System.arraycopy(body, 0, result, bom.length, body.length);
+
+        return new org.springframework.core.io.ByteArrayResource(result);
     }
 
     private String escapeCsv(String data) {
@@ -757,16 +1079,33 @@ public class PriceSearchService {
         String address = request.getAddress();
         java.math.BigDecimal area = request.getArea_m2();
 
-        // 1. Peer Group Search (주변 유사 매물 기준가 산출)
-        // P-004 로직 활용: 동네, 평수+-10m2 아파트 평균가
-        String sigungu = parseSigungu(address);
-        String dong = parseJibunDong(address);
+        // 구조화 주소 우선 사용, 없으면 파싱
+        String sigungu = (request.getSigungu() != null && !request.getSigungu().isEmpty())
+                ? request.getSigungu()
+                : parseSigungu(address);
+        String dong = (request.getDong() != null && !request.getDong().isEmpty())
+                ? request.getDong()
+                : "";
 
-        java.math.BigDecimal minArea = area.subtract(new java.math.BigDecimal("10"));
-        java.math.BigDecimal maxArea = area.add(new java.math.BigDecimal("10"));
+        // 면적 ±10% 범위
+        java.math.BigDecimal margin = area.multiply(new java.math.BigDecimal("0.10"))
+                .setScale(2, java.math.RoundingMode.HALF_UP);
+        java.math.BigDecimal minArea = area.subtract(margin);
+        java.math.BigDecimal maxArea = area.add(margin);
+        if (minArea.compareTo(java.math.BigDecimal.ZERO) < 0)
+            minArea = java.math.BigDecimal.ZERO;
 
-        // 기본적으로 아파트 기준으로 수행 (데이터 풍부)
-        Double avgPriceRaw = aptSaleRepo.findAverageDealAmount(sigungu, dong, minArea, maxArea);
+        // 유형별 레포지토리 라우팅
+        String propertyType = request.getPropertyType();
+        Double avgPriceRaw = null;
+        if (propertyType != null && (propertyType.contains("빌라") || propertyType.contains("연립"))) {
+            avgPriceRaw = villaSaleRepo.findAverageDealAmount(sigungu, dong, minArea, maxArea);
+        } else if (propertyType != null && propertyType.contains("오피스텔")) {
+            avgPriceRaw = officetelSaleRepo.findAverageDealAmount(sigungu, dong, minArea, maxArea);
+        } else {
+            // 기본: 아파트
+            avgPriceRaw = aptSaleRepo.findAverageDealAmount(sigungu, dong, minArea, maxArea);
+        }
 
         if (avgPriceRaw == null || avgPriceRaw == 0) {
             // 데이터 없으면 계산 불가
