@@ -11,6 +11,8 @@ public record BuildingDTO(
         String mainPurpsCdNm,       // 주용도코드명
         String etcPurps,            // 기타용도
         Integer hsprc,              // 주택가격
+        Integer hhldCnt,            // 세대수(세대)
+        String useAprDay,           // 사용 승인일
         String indictViolBldYn,     // 위반건축물 여부 (0: 정상, 1: 위반)
         String strctCdNm,           // 구조명
         Integer crtnDay             // 생성일자
@@ -19,9 +21,11 @@ public record BuildingDTO(
     public record BuildingResponse(
             String address,
             Integer housePrice,
+            Integer householdCount,     // 세대수(세대)
+            String approvalUseDay,      // 사용 승인일
             Integer score,
-            String riskLevel,       // 등급
-            List<String> reasons,   // 감점 사유
+            String riskLevel,           // 등급
+            List<String> reasons,       // 감점 사유
             Integer creationDay         // 생성일자
     ) {
         public static String calculateBuildingLevel(int score) {

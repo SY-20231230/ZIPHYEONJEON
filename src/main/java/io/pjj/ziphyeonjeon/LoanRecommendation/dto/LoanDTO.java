@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record LoanDTO(
+        String snq,            // 순번
         String finPrdNm,       // 금융상품명
         String lnLmt,          // 대출한도
         String irtCtg,         // 금리구분
@@ -14,6 +15,7 @@ public record LoanDTO(
         String trgt,           // 대상
         String instCtg,        // 기관구분
         String ofrInstNm,      // 제공기관명
+        String rsdArea,        // 거주지역
         String suprTgtDtlCond, // 지원대상 상세조건
         String age,            // 연령
         String incm,           // 소득

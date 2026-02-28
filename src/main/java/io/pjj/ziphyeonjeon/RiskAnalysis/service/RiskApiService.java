@@ -43,7 +43,7 @@ public class RiskApiService {
         return filterDisasterData(disasterList);
     }
 
-    // 재난 필터링 로직
+    // 재해 필터링
     private List<DisasterDTO> filterDisasterData(List<DisasterDTO> list) {
         return list.stream()
                 .filter(data -> data.EMRG_STEP_NM() != null && data.EMRG_STEP_NM().contains("재난"))
@@ -57,18 +57,22 @@ public class RiskApiService {
 
         if (codes == null) return Collections.emptyList();
 
+        String dongNm = riskAddressService.formatDongHo(addrDetails.get("dongNm"), "동");
+        String hoNm = riskAddressService.formatDongHo(addrDetails.get("hoNm"), "호");
+
         Map<String, String> apiRawData = apiBuilding.fetchAllBuildingData(
-                codes[0], codes[1], addrDetails.get("bun"), addrDetails.get("ji")
+                codes[0], codes[1], addrDetails.get("bun"), addrDetails.get("ji"), dongNm, hoNm
         );
 
         List<BuildingDTO> operationList = new ArrayList<>();
 
-        String[] targetOperations = {"title", "hsprc"};
+        String[] targetOperations = {"title", "hsprc", "pubuseArea", "recapTitle"};
 
         for (String key : targetOperations) {
             List<BuildingDTO> data = extractApiData(
                     apiRawData.get(key), BuildingDTO.class, "response", "body", "items", "item"
             );
+            System.out.println("RiskApiService/requestBuildingApi/" + key + ": 추출된 데이터 개수: " + data.size());
             operationList.addAll(data);
         }
 

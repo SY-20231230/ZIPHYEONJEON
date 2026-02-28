@@ -1,10 +1,15 @@
 package io.pjj.ziphyeonjeon.RiskAnalysis.service;
 
 import io.pjj.ziphyeonjeon.RiskAnalysis.dto.DisasterDTO;
+import io.pjj.ziphyeonjeon.RiskAnalysis.entity.RiskAnalysis;
+import io.pjj.ziphyeonjeon.RiskAnalysis.repository.RiskAnalysisRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import io.pjj.ziphyeonjeon.RiskAnalysis.dto.OcrDTO;
@@ -14,12 +19,57 @@ import io.pjj.ziphyeonjeon.RiskAnalysis.dto.RiskDTO;
 @Service
 public class RiskAnalysisService {
 
+    private final RiskAnalysisRepository riskAnalysisRepository;
     private final RiskApiService riskApiService;
     private final RiskOcrService riskOcrService;
 
-    public RiskAnalysisService(RiskApiService riskApiService, RiskOcrService riskOcrService) {
+    public RiskAnalysisService(RiskAnalysisRepository riskAnalysisRepository, RiskApiService riskApiService, RiskOcrService riskOcrService) {
+        this.riskAnalysisRepository = riskAnalysisRepository;
         this.riskApiService = riskApiService;
         this.riskOcrService = riskOcrService;
+    }
+
+    @Transactional
+    public RiskAnalysis saveTotalRiskAnalysis(String address, String message, MultipartFile ocrFile) {
+        var disasterResult = analyzeDisasterRisk(address);
+        var buildingResult = analyzeBuildingRisk(address);
+        var ocrResult = analyzeRecordOfTitleRisk(message, ocrFile);
+
+        BigDecimal dScore = BigDecimal.valueOf(disasterResult.data().getFirst().score());
+        BigDecimal bScore = BigDecimal.valueOf(buildingResult.data().getFirst().score());
+        BigDecimal oScore = BigDecimal.valueOf(ocrResult.data().getFirst().score());
+
+        BigDecimal totalScore = dScore.add(bScore).add(oScore)
+                .divide(BigDecimal.valueOf(3), 2, RoundingMode.HALF_UP);
+
+        String grade = calculateTotalGrade(totalScore);
+
+        RiskAnalysis analysis = new RiskAnalysis(totalScore, grade);
+        analysis.setAddress(address);
+        analysis.setAnalyzedAt(LocalDateTime.now());
+        analysis.setTotalSafetyScore(totalScore);
+        analysis.setFinalGrade(grade);
+        analysis.setDisasterRiskScore(dScore);
+        analysis.setBuildingRiskScore(bScore);
+        analysis.setRegisterRiskScore(oScore);
+
+        return riskAnalysisRepository.save(analysis);
+    }
+
+    // 종합 점수 등급 계산
+    private String calculateTotalGrade(BigDecimal totalScore) {
+        String grade;
+        double scoreDouble = totalScore.doubleValue();
+
+        if (scoreDouble >= 90) {
+            grade = "안전";
+        } else if (scoreDouble >= 70) {
+            grade = "주의";
+        } else {
+            grade = "위험";
+        }
+
+        return grade;
     }
 
     // 재해 위험도 분석
@@ -28,17 +78,19 @@ public class RiskAnalysisService {
 
         int score = calculateDisasterScore(rawData);
 
-        DisasterDTO.DisasterResponse responseContent = new DisasterDTO.DisasterResponse(
+        DisasterDTO.DisasterResponse disasterResponse = new DisasterDTO.DisasterResponse(
                 address,
                 score,
                 rawData
         );
 
-        return new RiskDTO<>(
+        RiskDTO<DisasterDTO.DisasterResponse> disasterResult = new RiskDTO<>(
                 "success",
                 "/RiskAnalysisService/Disaster, 주소: " + address,
-                List.of(responseContent)
+                List.of(disasterResponse)
         );
+
+        return disasterResult;
     }
 
     // 재해 위험 점수 계산
@@ -58,21 +110,47 @@ public class RiskAnalysisService {
     public RiskDTO<BuildingDTO.BuildingResponse> analyzeBuildingRisk(String address) {
         List<BuildingDTO> buildingData = riskApiService.requestBuildingApi(address);
 
-        int housePrice = buildingData.isEmpty() ? 0 : buildingData.getLast().hsprc();
-        int creationDay = buildingData.isEmpty() ? 0 : buildingData.getLast().crtnDay();
+        int housePrice = buildingData.stream()
+                .map(BuildingDTO::hsprc)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(0);
+
+        int householdCount = buildingData.stream()
+                .map(BuildingDTO::hhldCnt)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(0);
+
+        String approvalUseDay = buildingData.stream()
+                .map(BuildingDTO::useAprDay)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+
+        Integer creationDay = buildingData.stream()
+                .map(BuildingDTO::crtnDay)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(0);
 
         List<String> reasons = new ArrayList<>();
         int score = calculateBuildingScore(buildingData, reasons);
 
-        return new RiskDTO<>("success", "/RiskAnalysisService/Building, 주소: " + address,
-                List.of(new BuildingDTO.BuildingResponse(
-                        address,
-                        housePrice,
-                        score,
-                        BuildingDTO.BuildingResponse.calculateBuildingLevel(score),
-                        reasons,
-                        creationDay
-                ))
+        BuildingDTO.BuildingResponse buildingResponse = new BuildingDTO.BuildingResponse(
+                address,
+                housePrice,
+                householdCount,
+                approvalUseDay,
+                score,
+                BuildingDTO.BuildingResponse.calculateBuildingLevel(score),
+                reasons,
+                creationDay
+        );
+
+        return new RiskDTO<>("success",
+                "/RiskAnalysisService/Building, 주소: " + address,
+                List.of(buildingResponse)
         );
     }
 
@@ -111,9 +189,10 @@ public class RiskAnalysisService {
     @Transactional
     public RiskDTO<OcrDTO.RecordOfTitleResponse> analyzeRecordOfTitleRisk(String message, MultipartFile file) {
         OcrDTO ocrData = riskOcrService.requestOcrApi(message, file);
-        OcrDTO.RecordOfTitleResponse RecordOfTitleResult = calculateRecordOfTitleScore(ocrData);
+        OcrDTO.RecordOfTitleResponse recordOfTitleResult = calculateRecordOfTitleScore(ocrData);
 
-        return new RiskDTO<>("success", "/RiskAnalysisService/RecordOfTitle", List.of(RecordOfTitleResult));
+        return new RiskDTO<>("success",
+                "/RiskAnalysisService/RecordOfTitle, 메시지: " + message, List.of(recordOfTitleResult));
     }
 
     // 등기부등본 점수 계산

@@ -1,0 +1,251 @@
+/* 전역 래퍼 */
+.ld-wrapper-LoanDetail {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 30px 20px;
+    background-color: #fcfdfe;
+    font-family: 'Pretendard', sans-serif;
+}
+
+/* 헤더 스타일 */
+.ld-header-LoanDetail { margin-bottom: 40px; }
+.ld-back-btn-LoanDetail {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 14px;
+    cursor: pointer;
+    margin-bottom: 20px;
+    padding: 0;
+}
+
+.ld-header-main-LoanDetail {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+.ld-main-title-LoanDetail { font-size: 32px; font-weight: 800; margin: 12px 0 8px; color: #1e293b; }
+.ld-sub-title-LoanDetail { color: #64748b; font-size: 16px; }
+
+/* 아이콘 버튼 */
+.ld-icon-btn-LoanDetail {
+    background: white;
+    border: 1px solid #e2e8f0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-left: 8px;
+    cursor: pointer;
+    color: #64748b;
+    transition: all 0.2s;
+}
+.ld-icon-btn-LoanDetail:hover { background: #f8fafc; }
+
+/* 레이아웃 그리드 */
+.ld-grid-container-LoanDetail {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 30px;
+}
+
+/* 카드 공통 스타일 */
+.ld-card-LoanDetail {
+    background: #fff;
+    border-radius: 16px;
+    padding: 30px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+.ld-card-label-LoanDetail {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 25px;
+    color: #334155;
+}
+.ld-card-label-LoanDetail .material-icons { color: #3b82f6; }
+
+/* 기본 정보 그리드 */
+.ld-info-grid-LoanDetail {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    padding-top: 10px;
+}
+.ld-info-item-LoanDetail { display: flex; flex-direction: column; gap: 8px; }
+.ld-label-LoanDetail { color: #94a3b8; font-size: 13px; }
+.ld-value-LoanDetail { font-size: 18px; font-weight: 700; color: #1e293b; }
+.ld-value-LoanDetail.primary-LoanDetail { color: #3b82f6; }
+
+/* 상세 설명 리스트 */
+.ld-desc-row-LoanDetail { display: flex; margin-bottom: 18px; }
+.ld-desc-label-LoanDetail { width: 100px; color: #64748b; font-weight: 500; font-size: 14px; }
+.ld-desc-value-LoanDetail { flex: 1; color: #1e293b; font-size: 15px; line-height: 1.5; }
+.ld-desc-box-LoanDetail {
+    background: #f8fafc;
+    padding: 20px;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #475569;
+    margin-top: 10px;
+}
+
+/* 제공 기관 정보 */
+.ld-agency-info-LoanDetail {
+    display: flex;
+    align-items: flex-start; /* 상단 정렬로 변경하여 텍스트가 길어져도 아이콘 위치 고정 */
+    gap: 20px;
+    background: #f8fafc;
+    padding: 24px;
+    border-radius: 12px;
+}
+.ld-agency-icon-LoanDetail {
+    flex-shrink: 0; /* 아이콘 크기 유지 */
+    width: 50px;
+    height: 50px;
+    background: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.ld-agency-text-LoanDetail {
+    flex: 1; /* 남은 공간 모두 사용 */
+    display: flex;
+    flex-direction: column; /* 세로 배치 핵심 */
+    gap: 10px; /* 항목 간 간격 */
+    min-width: 0; /* 텍스트 오버플로우 방지 */
+}
+
+.ld-agency-name-LoanDetail {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 4px;
+}
+
+/* 연락처 및 링크 공통 행 스타일 */
+.ld-agency-contact-LoanDetail,
+.ld-agency-link-LoanDetail {
+    display: flex;
+    align-items: flex-start; /* 아이콘과 텍스트 상단 정렬 */
+    gap: 8px;
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.ld-agency-contact-LoanDetail .material-icons,
+.ld-agency-link-LoanDetail .material-icons {
+    font-size: 18px;
+    color: #94a3b8;
+    margin-top: 2px; /* 텍스트 중앙에 맞추기 위한 미세 조정 */
+}
+
+/* 텍스트가 너무 길 때 줄바꿈 처리 */
+.ld-contact-text-LoanDetail,
+.ld-link-text-LoanDetail {
+    word-break: break-all; /* 주소나 긴 번호가 영역을 나가지 않게 함 */
+    white-space: normal;
+    color: #64748b;
+    text-decoration: none;
+}
+
+.ld-link-text-LoanDetail:hover {
+    color: #3b82f6;
+    text-decoration: underline;
+}
+
+/* 사이드바 스타일 */
+.ld-blue-card-LoanDetail {
+    background: #3b82f6;
+    border-radius: 16px;
+    padding: 24px;
+    color: #fff;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2);
+}
+.ld-blue-card-desc-LoanDetail { font-size: 13px; opacity: 0.8; margin-bottom: 20px; }
+.ld-checklist-LoanDetail { list-style: none; padding: 0; margin-bottom: 25px; }
+.ld-checklist-LoanDetail li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 14px;
+}
+.ld-checklist-LoanDetail li.unchecked-LoanDetail { opacity: 0.6; }
+
+.ld-white-btn-LoanDetail {
+    width: 100%;
+    padding: 14px;
+    background: #fff;
+    color: #3b82f6;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.ld-calc-card-LoanDetail {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    border: 1px solid #f1f5f9;
+}
+.ld-input-wrap-LoanDetail {
+    display: flex;
+    align-items: center;
+    background: #f1f5f9;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 8px;
+}
+.ld-input-wrap-LoanDetail input {
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: right;
+    font-weight: 700;
+    font-size: 16px;
+    outline: none;
+}
+
+.ld-dark-btn-LoanDetail {
+    width: 100%;
+    padding: 14px;
+    background: #0f172a;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+/* 로딩 상태 */
+.loading-LoanDetail {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-size: 18px;
+    color: #64748b;
+}
+
+/* 반응형 */
+@media (max-width: 1024px) {
+    .ld-grid-container-LoanDetail {
+        grid-template-columns: 1fr;
+    }
+    .ld-sidebar-LoanDetail {
+        order: -1; /* 모바일에서 계산기가 위로 오게 하려면 설정 */
+    }
+}

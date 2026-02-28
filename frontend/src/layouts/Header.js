@@ -22,10 +22,10 @@ const Header = () => {
         },
         {
             label: '위험 분석',
-            link: '/riskanalysis',
+            link: '/risk/analysis',
             children: [
-                { label: '종합 분석', link: '/riskanalysis' },
-                { label: '리포트 예시', link: '/riskreport' }
+                { label: '종합 분석', link: '/risk/analysis' },
+                { label: '리포트(분석필요)', link: '/risk/report' }
             ]
         },
         {
@@ -33,6 +33,9 @@ const Header = () => {
             link: '/loan',
             children: [
                 { label: '대출', link: '/loan' },
+                { label: '대출 목록', link: '/loan/list' },
+                { label: '대출 비교', link: '/loan/compare' },
+                { label: '대출 상세', link: '/loan/detail' }
             ]
         },
         {

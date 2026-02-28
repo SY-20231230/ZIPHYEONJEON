@@ -13,11 +13,10 @@ const Ziphyeonjeon = () => {
                         <div className="badge-v2">안전한 부동산 거래의 시작</div>
                         <h1 className="hero-title-v2">
                             당신의 소중한 보증금,<br />
-                            <span className="text-gradient-v2">AI가 지켜드립니다</span>
+                            <span className="text-gradient-v2">집현전이 지켜드립니다</span>
                         </h1>
                         <p className="hero-desc-v2">
-                            Spring Boot와 AI 기반의 정밀 권리 분석으로<br />
-                            전세 사기 리스크를 사전에 차단합니다.
+                            정밀 권리 분석으로 리스크를 사전에 차단합니다.
                         </p>
 
                         <SearchContainer

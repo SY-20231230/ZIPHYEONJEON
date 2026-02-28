@@ -11,11 +11,12 @@ const RiskReport = () => {
     const location = useLocation();
     const navigate = useNavigate();
 
+    // 페이지 상단으로 로드
     useEffect(() => {
         window.scrollTo(0, 0);
     }, []);
 
-    const resultData = location.state?.result;
+    const resultData = location.state?.riskAnalysisResult;
 
     if (!resultData) {
         return (
@@ -30,23 +31,12 @@ const RiskReport = () => {
         );
     }
 
-    const averageScore = Math.round(
-        ((resultData.disasterData.data[0].score || 0) +
-            (resultData.buildingData.data[0].score || 0) +
-            (resultData.ocrData.data[0].score || 0)) / 3
-    )
-
-    const getGrade = (score) => {
-        if (score >= 90) return {text: "우수 등급", color: "green"};
-        if (score >= 70) return {text: "보통 등급", color: "yellow"};
-        return {text: "주의 등급", color: "red"};
-    };
-
-    const grade = getGrade(averageScore);
+    const disasterScore = resultData.analysisData.disasterRiskScore ?? 0;
+    const buildingScore = resultData.analysisData.buildingRiskScore ?? 0;
+    const ocrScore = resultData.analysisData.registerRiskScore ?? 0;
 
     const circumference = 283;
-
-    const strokeDashoffset = circumference - (averageScore / 100) * circumference;
+    const strokeDashoffset = circumference - (resultData.analysisData.totalSafetyScore / 100) * circumference;
 
     return (
         <MainLayout>
@@ -68,11 +58,11 @@ const RiskReport = () => {
                     </section>
 
                     <Hero
-                        title={resultData.address}
+                        title={resultData.analysisData.address}
                         actions={
                             <>
-                                <Button variant="outline">공유하기</Button>
-                                <Button variant="primary">리포트 다운로드</Button>
+                                {/*<Button variant="outline">공유하기</Button>*/}
+                                {/*<Button variant="primary">리포트 다운로드</Button>*/}
                             </>
                         }
                     />
@@ -89,7 +79,8 @@ const RiskReport = () => {
                                             />
                                             <circle
                                                 cx="50" cy="50" r="45"
-                                                stroke={grade.color} strokeWidth="8" fill="none"
+                                                stroke={resultData.analysisData.finalGrade === '안전' ? 'green' : 'yellow'}
+                                                strokeWidth="8" fill="none"
                                                 strokeDasharray={circumference}
                                                 strokeDashoffset={strokeDashoffset}
                                                 strokeLinecap="round"
@@ -97,82 +88,59 @@ const RiskReport = () => {
                                             />
                                         </svg>
                                         <div className="score-info-risk">
-                                            <span className="val-risk">{averageScore}</span>
+                                            <span className="val-risk">{resultData.analysisData.totalSafetyScore}</span>
                                             <span className="lbl-risk">SAFETY SCORE</span>
                                         </div>
                                     </div>
                                     <div className="score-desc-risk">
-                                        <Badge color={grade.color} variant="subtle"
-                                               className="mb-12">{grade.text}</Badge>
-                                        {resultData.disasterData?.data[0]?.disasterData?.length === 0 ? (
-                                            <h3>재해 분석: 조회된 재해 정보가 없습니다.</h3>
-                                        ) : (
+                                        <Badge color={resultData.analysisData.finalGrade === '안전' ? 'green' : 'yellow'}
+                                               variant="subtle"
+                                               className="mb-12">{resultData.analysisData.finalGrade}</Badge>
+                                        {resultData.disasterData ? (
                                             <>
                                                 <h3>재해 분석</h3>
-                                                {resultData.disasterData.data[0].disasterData.map((item, index) => (
-                                                    <div key={index} className="risk-item"
-                                                         style={{marginBottom: '10px'}}>
-                                                        <strong>{item.DST_SE_NM}</strong> ({item.REG_YMD})
-                                                    </div>
-                                                ))}
+                                                {resultData.disasterData.data[0]?.disasterData?.length === 0 ? (
+                                                    <p className="risk-item">조회된 재해 정보가 없습니다.</p>
+                                                ) : (
+                                                    resultData.disasterData.data[0].disasterData.map((item, index) => (
+                                                        <div key={index} className="risk-item">
+                                                            <strong>{item.DST_SE_NM}</strong> ({item.REG_YMD})
+                                                        </div>
+                                                    ))
+                                                )}
                                             </>
-                                        )}
+                                        ) : <p className="risk-item-disabled">재해 분석이 제외되었습니다.</p>}
+
                                         <br/>
-                                        <h3>건축물 분석: {resultData.buildingData.data[0].riskFactors}</h3>
+
+                                        {resultData.buildingData ? (
+                                            <>
+                                                <h3>건축물 분석</h3>
+                                                <p className="risk-item">{resultData.buildingData.data[0]?.reasons?.join(", ") || "특이사항 없음"}</p>
+                                            </>
+                                        ) : <p className="risk-item-disabled">건축물 분석이 제외되었습니다.</p>}
+
                                         <br/>
-                                        <h3>등기부 분석: {resultData.ocrData.data[0].gapguIssue}</h3>
-                                        {resultData.ocrData?.data?.[0]?.riskFactors?.map((factor, index) => (
-                                            <div key={index} className="risk-item">
-                                                {factor}
-                                            </div>
+
+                                        <h3>등기부 분석: {resultData.ocrData.data[0]?.gapguIssue}</h3>
+                                        {(resultData.ocrData?.data[0]?.riskFactors)?.map((factor, index) => (
+                                            <div key={index} className="risk-item">{factor}</div>
                                         ))}
                                         <p></p>
                                         <div className="mini-stats-risk">
-                                            <SmallProg label="재해" val={resultData.disasterData.data[0].score}
-                                                       color="blue"/>
-                                            <SmallProg label="건축물" val={resultData.buildingData.data[0].score}
-                                                       color="yellow"/>
-                                            <SmallProg label="등기" val={resultData.ocrData.data[0].score} color="green"/>
+                                            {resultData.disasterData &&
+                                                <SmallProg label="재해" val={disasterScore} color="blue"/>}
+                                            {resultData.buildingData &&
+                                                <SmallProg label="건축물" val={buildingScore} color="yellow"/>}
+                                            <SmallProg label="등기" val={ocrScore} color="green"/>
                                         </div>
                                     </div>
                                 </div>
                             </Card>
-
-                            <div className="details-grid-risk">
-                                <Card className="detail-item-risk" padding="24px">
-                                    <h4>등기부 권리 분석</h4>
-                                    <div className="info-row-risk"><span>소유주 확인</span><Badge color="green">000
-                                        (일치)</Badge></div>
-                                    <div className="mt-20">
-                                        <div className="info-row-risk"><span>부채 비율</span><span>0 KRW</span></div>
-                                        <div className="progress-bar-risk">
-                                            <div className="fill-risk green" style={{width: '2%'}}></div>
-                                        </div>
-                                    </div>
-                                </Card>
-
-                                <Card className="detail-item-risk" padding="24px">
-                                    <h4>시장 가치 평가</h4>
-                                    <div className="price-risk">{(resultData.buildingData.data[0].housePrice) / 100000000}억 <small>KRW</small></div>
-                                    <div className="info-row-risk"><span>전세가율</span><span
-                                        className="text-yellow">00%</span></div>
-                                    <div className="progress-bar-risk multi">
-                                        <div className="segment safe" style={{width: '60%'}}></div>
-                                        <div className="segment caution" style={{width: '18%'}}></div>
-                                    </div>
-                                </Card>
-
-                                <Card className="detail-item-risk" padding="24px">
-                                    <h4>건물 상태 정보</h4>
-                                    <div className="mini-grid-risk">
-                                        <div className="info-box-risk"><span>건물 연식</span><strong>00년</strong></div>
-                                        <div className="info-box-risk"><span>총 세대수</span><strong>000세대</strong></div>
-                                    </div>
-                                </Card>
-                            </div>
                         </div>
 
                         <aside className="sidebar-risk">
+                            {/*
                             <Card padding="24px" className="sidebar-card-risk">
                                 <h3>위험 요약 리포트</h3>
                                 <div className="summary-list-risk">
@@ -182,12 +150,47 @@ const RiskReport = () => {
                                 </div>
                                 <Button variant="dark" fullWidth className="mt-20">상세 리포트 보기</Button>
                             </Card>
+                            */}
+
+                            <Card className="detail-item-risk" padding="24px">
+                                <h4>건물 상태 정보</h4>
+                                <div className="mini-grid-risk">
+                                    <div className="info-box-risk">
+                                        <span>건물 연식 (사용승인)</span><strong>{resultData.buildingData?.data?.[0]?.approvalUseDay
+                                        ? `${Math.floor(resultData.buildingData.data[0].approvalUseDay / 10000)}년`
+                                        : "미분석"}</strong>
+                                    </div>
+                                    <div className="info-box-risk">
+                                        <span>총 세대수</span><strong>{resultData.buildingData?.data?.[0]?.householdCount
+                                        ? `${resultData.buildingData.data[0].householdCount}세대`
+                                        : "미분석"}</strong>
+                                    </div>
+                                </div>
+                            </Card>
+
+                            <Card className="detail-item-risk" p-dding="24px">
+                                <h4>시장 가치 평가</h4>
+                                <div className="price-risk">
+                                    {resultData.buildingData?.data?.[0]?.housePrice > 0
+                                        ? `${(resultData.buildingData.data[0].housePrice / 100000000).toFixed(1)}억`
+                                        : "미분석"}
+                                    <small> KRW</small>
+                                </div>
+                                {/*
+                                    <div className="info-row-risk"><span>전세가율</span><span
+                                        className="text-yellow">00%</span></div>
+                                    <div className="progress-bar-risk multi">
+                                        <div className="segment safe" style={{width: '60%'}}></div>
+                                        <div className="segment caution" style={{width: '18%'}}></div>
+                                    </div>
+                                    */}
+                            </Card>
 
                             <Card padding="24px" className="sidebar-pro-risk dark-card">
                                 <Badge color="blue" variant="solid" className="mb-16">PRO TIP</Badge>
                                 <h4>대항력 확보 방법</h4>
                                 <p>전입신고와 확정일자는 이사 당일 반드시 완료해야 보증금을 지킬 수 있습니다.</p>
-                                <Button variant="ghost" icon="arrow_forward" className="text-blue p-0">가이드북 보기</Button>
+                                {/*<Button variant="ghost" icon="arrow_forward" className="text-blue p-0">가이드북 보기</Button>*/}
                             </Card>
                         </aside>
                     </div>

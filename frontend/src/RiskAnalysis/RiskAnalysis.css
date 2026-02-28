@@ -26,7 +26,7 @@ body {
 }
 
 /* Header Styles */
-.header {
+.risk-header {
     position: sticky;
     top: 0;
     z-index: 50;
@@ -36,7 +36,7 @@ body {
     box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.03);
 }
 
-.header-container {
+.risk-header-container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
@@ -46,20 +46,20 @@ body {
     align-items: center;
 }
 
-.header-left, .header-right {
+.risk-header-left, .risk-header-right {
     display: flex;
     align-items: center;
     gap: 40px;
 }
 
-.logo-group {
+.risk-logo-group {
     display: flex;
     align-items: center;
     gap: 12px;
     text-decoration: none;
 }
 
-.logo-icon {
+.risk-logo-icon {
     width: 40px;
     height: 40px;
     background: var(--primary-light);
@@ -71,18 +71,18 @@ body {
     transition: 0.3s;
 }
 
-.logo-group:hover .logo-icon {
+.risk-logo-group:hover .risk-logo-icon {
     background: var(--primary);
     color: var(--white);
 }
 
-.logo-text {
+.risk-logo-text {
     font-size: 20px;
     font-weight: 800;
     color: var(--slate-900);
 }
 
-.logo-subtext {
+.risk-logo-subtext {
     font-size: 10px;
     font-weight: 700;
     color: var(--primary);
@@ -90,12 +90,12 @@ body {
     letter-spacing: 1px;
 }
 
-.nav-menu {
+.risk-nav-menu {
     display: flex;
     gap: 4px;
 }
 
-.nav-link {
+.risk-nav-link {
     padding: 8px 16px;
     border-radius: 8px;
     font-size: 14px;
@@ -105,18 +105,18 @@ body {
     transition: 0.2s;
 }
 
-.nav-link:hover {
+.risk-nav-link:hover {
     color: var(--primary);
     background: var(--slate-50);
 }
 
-.nav-link.active {
+.risk-nav-link.risk-active {
     color: var(--primary);
     background: var(--primary-light);
     font-weight: 700;
 }
 
-.pill-link {
+.risk-pill-link {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -130,19 +130,19 @@ body {
     transition: 0.3s;
 }
 
-.pill-link:hover {
+.risk-pill-link:hover {
     background: var(--slate-900);
     color: white;
     border-color: var(--slate-900);
 }
 
-.user-section {
+.risk-user-section {
     display: flex;
     align-items: center;
     gap: 16px;
 }
 
-.notif-btn {
+.risk-notif-btn {
     position: relative;
     background: none;
     border: none;
@@ -150,7 +150,7 @@ body {
     cursor: pointer;
 }
 
-.notif-dot {
+.risk-notif-dot {
     position: absolute;
     top: 2px;
     right: 2px;
@@ -161,35 +161,35 @@ body {
     border: 2px solid white;
 }
 
-.divider {
+.risk-divider {
     width: 1px;
     height: 32px;
     background: var(--slate-200);
 }
 
-.user-profile {
+.risk-user-profile {
     display: flex;
     align-items: center;
     gap: 12px;
     cursor: pointer;
 }
 
-.user-info {
+.risk-user-info {
     text-align: right;
 }
 
-.user-name {
+.risk-user-name {
     font-size: 12px;
     font-weight: 700;
     color: var(--slate-900);
 }
 
-.user-plan {
+.risk-user-plan {
     font-size: 10px;
     color: var(--slate-500);
 }
 
-.user-avatar {
+.risk-user-avatar {
     width: 36px;
     height: 36px;
     border-radius: 50%;
@@ -198,19 +198,19 @@ body {
 }
 
 /* Main Content Styles */
-.main-content {
+.risk-main-content {
     max-width: 1200px;
     margin: 0 auto;
     padding: 60px 20px;
 }
 
-.main-section {
+.risk-main-section {
     text-align: center;
     margin-bottom: 48px;
     position: relative;
 }
 
-.main-bg-blur {
+.risk-main-bg-blur {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -222,7 +222,7 @@ body {
     z-index: -1;
 }
 
-.badge {
+.risk-badge {
     display: inline-flex !important;
     flex-direction: row !important;
     align-items: center !important;
@@ -240,14 +240,14 @@ body {
     white-space: nowrap !important;
 }
 
-.title {
+.risk-title {
     font-size: 48px;
     font-weight: 900;
     color: var(--slate-900);
     margin-bottom: 16px;
 }
 
-.description {
+.risk-description {
     color: var(--slate-500);
     font-size: 18px;
     line-height: 1.6;
@@ -256,12 +256,12 @@ body {
 }
 
 /* Form Card */
-.form-container {
+.risk-form-container {
     max-width: 768px;
     margin: 0 auto;
 }
 
-.card {
+.risk-card {
     background: var(--white);
     border-radius: 24px;
     padding: 40px;
@@ -271,7 +271,7 @@ body {
     overflow: hidden;
 }
 
-.card-decoration {
+.risk-card-decoration {
     position: absolute;
     top: -96px;
     right: -96px;
@@ -282,7 +282,7 @@ body {
     z-index: 0;
 }
 
-.analysis-form {
+.risk-analysis-form {
     position: relative;
     z-index: 10;
     display: flex;
@@ -290,19 +290,19 @@ body {
     gap: 40px;
 }
 
-.form-step {
+.risk-form-step {
     display: flex;
     flex-direction: column;
     gap: 16px;
 }
 
-.label-row {
+.risk-label-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.input-label {
+.risk-input-label {
     font-size: 16px;
     font-weight: 700;
     color: var(--slate-900);
@@ -311,7 +311,7 @@ body {
     gap: 8px;
 }
 
-.step-num {
+.risk-step-num {
     width: 24px;
     height: 24px;
     background: var(--slate-100);
@@ -323,31 +323,62 @@ body {
     justify-content: center;
 }
 
-.helper-text-link {
+.risk-detail-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-left: 20px;
+    margin-top: -8px;
+}
+
+.risk-detail-input-wrapper input {
+    width: 100%;
+    padding: 14px 16px 14px 44px;
+    background: var(--white);
+    border: 1px solid var(--slate-200);
+    border-radius: 12px;
+    font-size: 15px;
+    outline: none;
+    transition: 0.3s;
+}
+
+.risk-detail-input-wrapper input:focus {
+    border-color: var(--primary);
+    background: var(--primary-light);
+}
+
+.risk-detail-icon {
+    position: absolute;
+    left: 16px;
+    color: var(--slate-400);
+    font-size: 18px;
+}
+
+.risk-helper-text-link {
     font-size: 12px;
     color: var(--primary);
     font-weight: 500;
     cursor: pointer;
 }
 
-.helper-text-link:hover {
+.risk-helper-text-link:hover {
     text-decoration: underline;
 }
 
-.search-input-wrapper {
+.risk-search-input-wrapper {
     position: relative;
     display: flex;
     align-items: center;
 }
 
-.search-icon {
+.risk-search-icon {
     position: absolute;
     left: 16px;
     color: var(--slate-400);
     font-size: 20px;
 }
 
-.search-input-wrapper input {
+.risk-search-input-wrapper input {
     width: 100%;
     padding: 16px 110px 16px 48px;
     background: var(--slate-50);
@@ -358,12 +389,12 @@ body {
     transition: 0.3s;
 }
 
-.search-input-wrapper input:focus {
+.risk-search-input-wrapper input:focus {
     border-color: var(--primary);
     box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
 }
 
-.search-btn {
+.risk-search-btn {
     position: absolute;
     right: 8px;
     padding: 10px 20px;
@@ -375,31 +406,31 @@ body {
     cursor: pointer;
 }
 
-.form-divider {
+.risk-form-divider {
     border: 0;
     border-top: 1px solid var(--slate-100);
 }
 
-.tooltip-container {
+.risk-tooltip-container {
     position: relative;
     display: inline-block;
 }
 
-.tooltip-trigger {
+.risk-tooltip-trigger {
     font-size: 12px;
     color: var(--primary);
     font-weight: 500;
     cursor: pointer;
 }
 
-.tooltip-trigger:hover {
+.risk-tooltip-trigger:hover {
     font-size: 12px;
     color: black;
     font-weight: 500;
     cursor: pointer;
 }
 
-.tooltip-box {
+.risk-tooltip-box {
     position: absolute;
     bottom: 125%;
     left: 50%;
@@ -415,7 +446,7 @@ body {
     pointer-events: none;
 }
 
-.tooltip-box::after {
+.risk-tooltip-box::after {
     content: "";
     position: absolute;
     top: 100%;
@@ -428,7 +459,7 @@ body {
 
 
 /* File Upload */
-.upload-box {
+.risk-upload-box {
     position: relative;
     border: 2px dashed var(--slate-300);
     border-radius: 16px;
@@ -438,12 +469,12 @@ body {
     transition: 0.3s;
 }
 
-.upload-box:hover {
+.risk-upload-box:hover {
     border-color: var(--primary);
     background: var(--primary-light);
 }
 
-.file-input {
+.risk-file-input {
     position: absolute;
     inset: 0;
     opacity: 0;
@@ -451,7 +482,7 @@ body {
     z-index: 10;
 }
 
-.upload-icon-circle {
+.risk-upload-icon-circle {
     width: 56px;
     height: 56px;
     background: white;
@@ -464,19 +495,19 @@ body {
     color: var(--primary);
 }
 
-.upload-content h3 {
+.risk-upload-content h3 {
     font-size: 14px;
     font-weight: 700;
     margin-bottom: 4px;
 }
 
-.upload-content p {
+.risk-upload-content p {
     font-size: 12px;
     color: var(--slate-500);
     margin-bottom: 16px;
 }
 
-.select-btn {
+.risk-select-btn {
     display: inline-block;
     padding: 6px 12px;
     background: white;
@@ -488,7 +519,7 @@ body {
 }
 
 /* Consent Styles */
-.consent-group {
+.risk-consent-group {
     background: var(--slate-50);
     border-radius: 16px;
     padding: 20px;
@@ -497,7 +528,7 @@ body {
     gap: 16px;
 }
 
-.consent-item {
+.risk-consent-item {
     display: flex;
     gap: 12px;
     padding: 12px;
@@ -506,25 +537,25 @@ body {
     transition: 0.2s;
 }
 
-.consent-item:hover {
+.risk-consent-item:hover {
     background: white;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
 }
 
-.checkbox-wrapper {
+.risk-checkbox-wrapper {
     position: relative;
     width: 20px;
     height: 20px;
     margin-top: 2px;
 }
 
-.checkbox-wrapper input {
+.risk-checkbox-wrapper input {
     position: absolute;
     opacity: 0;
     cursor: pointer;
 }
 
-.custom-checkbox {
+.risk-custom-checkbox {
     position: absolute;
     top: 0;
     left: 0;
@@ -540,31 +571,31 @@ body {
     font-size: 14px;
 }
 
-.checkbox-wrapper input:checked ~ .custom-checkbox {
+.risk-checkbox-wrapper input:checked ~ .risk-custom-checkbox {
     background: var(--primary);
     border-color: var(--primary);
 }
 
-.consent-header {
+.risk-consent-header {
     display: flex;
     justify-content: flex-start;
     align-items: center;
     gap: 8px
 }
 
-.consent-title {
+.risk-consent-title {
     font-size: 14px;
     font-weight: 700;
     color: var(--slate-800);
 }
 
-.consent-desc {
+.risk-consent-desc {
     font-size: 12px;
     color: var(--slate-500);
     margin-top: 2px;
 }
 
-.tag-essential, .tag-required {
+.risk-tag-essential, .risk-tag-required {
     font-size: 10px;
     font-weight: 700;
     background: var(--primary-light);
@@ -573,7 +604,7 @@ body {
     border-radius: 4px;
 }
 
-.tag-optional {
+.risk-tag-optional {
     font-size: 10px;
     font-weight: 700;
     border: 1px solid var(--slate-200);
@@ -583,7 +614,7 @@ body {
 }
 
 
-.validation-message {
+.risk-validation-message {
     display: flex;
     align-items: center;
     justify-content: center; /* 가로 중앙 정렬 */
@@ -592,7 +623,7 @@ body {
     width: 100%;
 }
 
-.validation-message span {
+.risk-validation-message span {
     color: #ef4444;          /* 부드러운 레드 계열 */
     font-size: 14px;
     font-weight: 500;
@@ -600,7 +631,7 @@ body {
 }
 
 /* Submit Button */
-.submit-btn {
+.risk-submit-btn {
     width: 100%;
     height: 56px;
     background: var(--primary);
@@ -618,12 +649,12 @@ body {
     transition: 0.3s;
 }
 
-.submit-btn:hover {
+.risk-submit-btn:hover {
     background: var(--primary-dark);
     transform: translateY(-1px);
 }
 
-.submit-btn:disabled {
+.risk-submit-btn:disabled {
     background: #e2e8f0; /* 연한 회색 (slate-200) */
     color: #94a3b8;      /* 중간 회색 (slate-400) */
     cursor: not-allowed; /* 마우스 커서를 '금지' 모양으로 변경 */
@@ -632,32 +663,32 @@ body {
 }
 
 /* 비활성화 상태일 때는 hover 효과가 무시되도록 설정 */
-.submit-btn:disabled:hover {
+.risk-submit-btn:disabled:hover {
     background: #e2e8f0;
     transform: none;
 }
 
-.terms-text {
+.risk-terms-text {
     text-align: center;
     font-size: 12px;
     color: var(--slate-400);
     margin-top: 16px;
 }
 
-.terms-text a {
+.risk-terms-text a {
     color: inherit;
     text-decoration: underline;
 }
 
 /* Feature Grid */
-.feature-grid {
+.risk-feature-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 16px;
     margin-top: 32px;
 }
 
-.feature-item {
+.risk-feature-item {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -665,7 +696,7 @@ body {
     text-align: center;
 }
 
-.feature-icon {
+.risk-feature-icon {
     width: 40px;
     height: 40px;
     border-radius: 50%;
@@ -675,22 +706,22 @@ body {
     font-size: 20px;
 }
 
-.icon-blue {
+.risk-icon-blue {
     background: #EFF6FF;
     color: #3B82F6;
 }
 
-.icon-green {
+.risk-icon-green {
     background: #ECFDF5;
     color: #10B981;
 }
 
-.icon-slate {
+.risk-icon-slate {
     background: #F1F5F9;
     color: #94A3B8;
 }
 
-.feature-item span {
+.risk-feature-item span {
     font-size: 12px;
     font-weight: 600;
     color: var(--slate-500);
