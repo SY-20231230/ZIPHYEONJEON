@@ -4,8 +4,6 @@
 
 #### 윤성용
 
-#### 한승우
-
 ## 
 
 [집현전v1 기획서](https://docs.google.com/document/d/1bCCsgrb89_NNAsgIdyxNmWSde2p8IGRJ9R9z1lWfNKw/edit?tab=t.0)
