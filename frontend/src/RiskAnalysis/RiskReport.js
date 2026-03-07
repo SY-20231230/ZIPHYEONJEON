@@ -1,11 +1,11 @@
-import React, {useEffect} from 'react';
+import React, { useEffect } from 'react';
 import './RiskReport.css';
 import MainLayout from "../layouts/MainLayout";
 import Card from '../components/common/Card';
 import Hero from '../components/common/Hero';
 import Badge from '../components/common/Badge';
 import Button from '../components/common/Button';
-import {useLocation, useNavigate} from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const RiskReport = () => {
     const location = useLocation();
@@ -21,7 +21,7 @@ const RiskReport = () => {
     if (!resultData) {
         return (
             <MainLayout>
-                <div style={{padding: "50px", textAlign: "center"}}>
+                <div style={{ padding: "50px", textAlign: "center" }}>
                     <Hero
                         subtitle={"분석 데이터가 없습니다. 다시 시도해 주세요."}>
                     </Hero>
@@ -46,14 +46,14 @@ const RiskReport = () => {
                     {/* Process Steps */}
                     <section className="process-section-risk">
                         <div className="progress-track-risk">
-                            <div className="progress-fill-risk" style={{width: '55%'}}></div>
+                            <div className="progress-fill-risk" style={{ width: '55%' }}></div>
                         </div>
                         <div className="steps-container-risk">
-                            <Step icon="location_on" label="주소<br/>분석" active/>
-                            <Step icon="fact_check" label="등기부등본<br/>확인" active/>
-                            <Step icon="analytics" label="위험성<br/>평가" current/>
-                            <Step icon="description" label="계약서<br/>초안" disabled/>
-                            <Step icon="verified" label="최종<br/>평가" disabled/>
+                            <Step icon="location_on" label="주소<br/>분석" active />
+                            <Step icon="fact_check" label="등기부등본<br/>확인" active />
+                            <Step icon="analytics" label="위험성<br/>평가" current />
+                            <Step icon="description" label="계약서<br/>초안" disabled />
+                            <Step icon="verified" label="최종<br/>평가" disabled />
                         </div>
                     </section>
 
@@ -84,7 +84,7 @@ const RiskReport = () => {
                                                 strokeDasharray={circumference}
                                                 strokeDashoffset={strokeDashoffset}
                                                 strokeLinecap="round"
-                                                style={{transition: 'stroke-dashoffset 0.5s ease-in-out'}}
+                                                style={{ transition: 'stroke-dashoffset 0.5s ease-in-out' }}
                                             />
                                         </svg>
                                         <div className="score-info-risk">
@@ -94,8 +94,8 @@ const RiskReport = () => {
                                     </div>
                                     <div className="score-desc-risk">
                                         <Badge color={resultData.analysisData.finalGrade === '안전' ? 'green' : 'yellow'}
-                                               variant="subtle"
-                                               className="mb-12">{resultData.analysisData.finalGrade}</Badge>
+                                            variant="subtle"
+                                            className="mb-12">{resultData.analysisData.finalGrade}</Badge>
                                         {resultData.disasterData ? (
                                             <>
                                                 <h3>재해 분석</h3>
@@ -111,7 +111,7 @@ const RiskReport = () => {
                                             </>
                                         ) : <p className="risk-item-disabled">재해 분석이 제외되었습니다.</p>}
 
-                                        <br/>
+                                        <br />
 
                                         {resultData.buildingData ? (
                                             <>
@@ -120,7 +120,7 @@ const RiskReport = () => {
                                             </>
                                         ) : <p className="risk-item-disabled">건축물 분석이 제외되었습니다.</p>}
 
-                                        <br/>
+                                        <br />
 
                                         <h3>등기부 분석: {resultData.ocrData.data[0]?.gapguIssue}</h3>
                                         {(resultData.ocrData?.data[0]?.riskFactors)?.map((factor, index) => (
@@ -129,10 +129,10 @@ const RiskReport = () => {
                                         <p></p>
                                         <div className="mini-stats-risk">
                                             {resultData.disasterData &&
-                                                <SmallProg label="재해" val={disasterScore} color="blue"/>}
+                                                <SmallProg label="재해" val={disasterScore} color="blue" />}
                                             {resultData.buildingData &&
-                                                <SmallProg label="건축물" val={buildingScore} color="yellow"/>}
-                                            <SmallProg label="등기" val={ocrScore} color="green"/>
+                                                <SmallProg label="건축물" val={buildingScore} color="yellow" />}
+                                            <SmallProg label="등기" val={ocrScore} color="green" />
                                         </div>
                                     </div>
                                 </div>
@@ -157,13 +157,13 @@ const RiskReport = () => {
                                 <div className="mini-grid-risk">
                                     <div className="info-box-risk">
                                         <span>건물 연식 (사용승인)</span><strong>{resultData.buildingData?.data?.[0]?.approvalUseDay
-                                        ? `${Math.floor(resultData.buildingData.data[0].approvalUseDay / 10000)}년`
-                                        : "미분석"}</strong>
+                                            ? `${Math.floor(resultData.buildingData.data[0].approvalUseDay / 10000)}년`
+                                            : "미분석"}</strong>
                                     </div>
                                     <div className="info-box-risk">
                                         <span>총 세대수</span><strong>{resultData.buildingData?.data?.[0]?.householdCount
-                                        ? `${resultData.buildingData.data[0].householdCount}세대`
-                                        : "미분석"}</strong>
+                                            ? `${resultData.buildingData.data[0].householdCount}세대`
+                                            : "미분석"}</strong>
                                     </div>
                                 </div>
                             </Card>
@@ -201,23 +201,23 @@ const RiskReport = () => {
 };
 
 /* Internal Helpers */
-const Step = ({icon, label, active, current, disabled}) => (
+const Step = ({ icon, label, active, current, disabled }) => (
     <div className={`step-risk ${active ? 'active' : ''} ${current ? 'current' : ''} ${disabled ? 'disabled' : ''}`}>
         <div className="circle-risk"><span className="material-symbols-outlined">{icon}</span></div>
-        <p dangerouslySetInnerHTML={{__html: label}}></p>
+        <p dangerouslySetInnerHTML={{ __html: label }}></p>
     </div>
 );
 
-const SmallProg = ({label, val, color}) => (
+const SmallProg = ({ label, val, color }) => (
     <div className="small-stat-risk">
         <div className="lbl-row-risk"><span>{label}</span><strong className={`text-${color}`}>{val}%</strong></div>
         <div className="bar-risk">
-            <div className={`fill-risk ${color}`} style={{width: `${val}%`}}></div>
+            <div className={`fill-risk ${color}`} style={{ width: `${val}%` }}></div>
         </div>
     </div>
 );
 
-const Summary = ({icon, title, desc, color}) => (
+const Summary = ({ icon, title, desc, color }) => (
     <div className={`summary-item-risk ${color}`}>
         <div className="icon-risk"><span className="material-symbols-outlined">{icon}</span></div>
         <div className="txt-risk"><strong>{title}</strong><p>{desc}</p></div>

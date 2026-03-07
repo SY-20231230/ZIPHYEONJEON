@@ -326,7 +326,7 @@ const RiskAnalysis = () => {
 
                                     <p className="risk-terms-text">
 
-                                        시작하기를 클릭하면 <a href="#">서비스 약관</a>에 동의하게 됩니다.
+                                        시작하기를 클릭하면 <a href="/terms">서비스 약관</a>에 동의하게 됩니다.
                                     </p>
                                 </div>
                             </form>
@@ -361,13 +361,6 @@ const ConsentItem = ({ title, desc, essential, checked, onChange }) => (
             <p className="risk-consent-desc">{desc}</p>
         </div>
     </label>
-);
-
-const FeatureItem = ({ icon, text, color }) => (
-    <div className="risk-feature-item">
-        <div className={`risk-feature-icon risk-icon-${color}`}>{icon}</div>
-        <span>{text}</span>
-    </div>
 );
 
 export default RiskAnalysis;

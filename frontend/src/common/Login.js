@@ -58,7 +58,7 @@ const LoginPage = () => {
                                     <span className="check-box-ui"><span className="material-symbols-outlined">check</span></span>
                                     <span className="label-text">로그인 상태 유지</span>
                                 </label>
-                                <a href="#" className="forgot-password-v2">비밀번호 찾기</a>
+                                <a href="/forgot-password" className="forgot-password-v2">비밀번호 찾기</a>
                             </div>
 
                             <Button variant="primary" size="lg" fullWidth type="submit">
@@ -81,8 +81,8 @@ const LoginPage = () => {
                     <footer className="login-footer-v2">
                         <p>© 2024 Jiphyeonjeon Team. All rights reserved.</p>
                         <div className="footer-links-v2">
-                            <a href="#">Privacy Policy</a>
-                            <a href="#">Terms of Service</a>
+                            <a href="/privacy">Privacy Policy</a>
+                            <a href="/terms">Terms of Service</a>
                         </div>
                     </footer>
                 </div>

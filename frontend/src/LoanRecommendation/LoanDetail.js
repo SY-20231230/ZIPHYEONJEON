@@ -1,17 +1,14 @@
-import React, {useEffect, useState} from 'react';
-import {Link, useLocation, useNavigate, useParams} from "react-router-dom";
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import './LoanDetail.css';
 import MainLayout from "../layouts/MainLayout";
 import Badge from '../components/common/Badge';
-import Button from '../components/common/Button';
 import axios from "axios";
 
 const LoanDetail = () => {
     const location = useLocation();
-    const navigate = useNavigate();
-    const prevFilters = location.state?.prevFilters;
 
-    const {snq} = useParams();
+    const { snq } = useParams();
     const [loanData, setLoanData] = useState(null);
 
     useEffect(() => {
@@ -30,7 +27,7 @@ const LoanDetail = () => {
                     <Link
                         to={`/loan/list`}
                         state={{ prevFilters: location.state?.prevFilters }}
-                        style={{textDecoration: 'none'}}
+                        style={{ textDecoration: 'none' }}
                     >
                         <button className="ld-back-btn-LoanDetail">
                             <span className="material-icons">chevron_left</span>
@@ -117,7 +114,7 @@ const LoanDetail = () => {
                                     <div className="ld-agency-link-LoanDetail">
                                         <span className="material-icons">language</span>
                                         <a href={loanData.rltSite} target="_blank" rel="noopener noreferrer"
-                                           className="ld-link-text-LoanDetail">
+                                            className="ld-link-text-LoanDetail">
                                             {loanData.rltSite}
                                         </a>
                                     </div>
@@ -147,7 +144,7 @@ const LoanDetail = () => {
                             <div className="ld-input-field-LoanDetail">
                                 <label>대출 신청 금액</label>
                                 <div className="ld-input-wrap-LoanDetail">
-                                    <input type="text" defaultValue="3,000"/>
+                                    <input type="text" defaultValue="3,000" />
                                     <span>만원</span>
                                 </div>
                             </div>
