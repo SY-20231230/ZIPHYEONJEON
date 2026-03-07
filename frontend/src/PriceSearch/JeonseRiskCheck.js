@@ -178,11 +178,6 @@ const JeonseRiskCheck = () => {
                         };
                         const cfg = RISK_CONFIG[result.riskLevel] || RISK_CONFIG.SAFE;
                         const ratio = result.myJeonseRatio ?? 0;
-                        const barColor =
-                            ratio < 25 ? '#7b2ff7' :
-                                ratio < 60 ? '#198754' :
-                                    ratio < 70 ? '#ffc107' :
-                                        ratio < 85 ? '#e85d04' : '#dc3545';
 
                         return (
                             <div style={{ background: cfg.bg, borderRadius: '8px', padding: '15px' }}>

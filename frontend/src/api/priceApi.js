@@ -59,6 +59,16 @@ export const searchLandPrice = async (params) => {
     }
 };
 
+export const getPnuByAddress = async (address) => {
+    try {
+        const response = await axios.get(`${API_BASE_URL}/pnu`, { params: { address } });
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching PNU:", error);
+        throw error;
+    }
+};
+
 export const comparePrices = async (requestBody) => {
     // requestBody: { targets: [ { address, area_m2, transaction_type, targetPrice }, ... ] }
     try {

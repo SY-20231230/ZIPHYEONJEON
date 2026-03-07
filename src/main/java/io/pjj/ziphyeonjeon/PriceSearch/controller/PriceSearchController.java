@@ -52,6 +52,15 @@ public class PriceSearchController {
         return priceSearchService.searchLandPrice(request);
     }
 
+    // P-003 PNU Lookup
+    @GetMapping("/pnu")
+    public java.util.Map<String, String> getPnuByAddress(@RequestParam String address) {
+        String pnu = priceSearchService.getPnuByAddress(address);
+        java.util.Map<String, String> map = new java.util.HashMap<>();
+        map.put("pnu", pnu != null ? pnu : "");
+        return map;
+    }
+
     @org.springframework.web.bind.annotation.PostMapping("/compare")
     public List<io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceCompareResponse> comparePrices(
             @org.springframework.web.bind.annotation.RequestBody io.pjj.ziphyeonjeon.PriceSearch.dto.request.PriceCompareRequest request) {

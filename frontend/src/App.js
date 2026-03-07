@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Ziphyeonjeon from "./Ziphyeonjeon"
 import Login from "./common/Login";
 import Registration from "./common/Registration";
+import Chatbot from "./Chatbot/Chatbot";
 
 import RiskAnalysis from "./RiskAnalysis/RiskAnalysis";
 import RiskReport from "./RiskAnalysis/RiskReport";
@@ -32,10 +33,10 @@ function App() {
                 <Route path="/loan/compare" element={<LoanCompare />} />
                 <Route path="/loan/detail/:snq" element={<LoanDetail />} />
 
-                {/* Price Search (P-001 ~ P-008) */}
                 <Route path="/price-search" element={<PriceSearch />} />
 
             </Routes>
+            <Chatbot />
         </BrowserRouter>
     );
 }

@@ -98,9 +98,9 @@ const SignupPage = () => {
                 <footer className="footer-v2">
                     <p>© 2024 Jiphyeonjeon Team. All rights reserved.</p>
                     <div className="footer-nav-v2">
-                        <a href="#">개인정보처리방침</a>
-                        <a href="#">이용약관</a>
-                        <a href="#">고객지원</a>
+                        <a href="/privacy">개인정보처리방침</a>
+                        <a href="/terms">이용약관</a>
+                        <a href="/support">고객지원</a>
                     </div>
                 </footer>
             </div>

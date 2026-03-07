@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import './RiskAnalysis.css';
 
@@ -10,66 +10,60 @@ import {
     IoCheckmark,
     IoArrowForwardOutline
 } from "react-icons/io5";
-import {useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const RiskAnalysis = () => {
-        const navigate = useNavigate();
-        const [address, setAddress] = useState('');
-        const [detailAddress, setDetailAddress] = useState('');
-        const [isSearched, setIsSearched] = useState(false);
+    const navigate = useNavigate();
+    const [address, setAddress] = useState('');
+    const [detailAddress, setDetailAddress] = useState('');
+    const [isSearched, setIsSearched] = useState(false);
 
-        // 주소 검색 버튼
-        // 윤성용님이 만든 /global/API/vworld/VworldSearchClient.java 지번 검색으로 사용해서 만들기
-        const addressButton = async () => {
-            if (!address.trim()) return alert("주소를 입력해주세요.");
-            setIsSearched(true);
-            console.log("주소 검색 완료:", address);
-        }
+    // 주소 검색 버튼
+    // 윤성용님이 만든 /global/API/vworld/VworldSearchClient.java 지번 검색으로 사용해서 만들기
+    const addressButton = async () => {
+        if (!address.trim()) return alert("주소를 입력해주세요.");
+        setIsSearched(true);
+        console.log("주소 검색 완료:", address);
+    }
 
-        // 파일 업로드
-        const [file, setFile] = useState(null);
-        const handleFileChange = (e) => {
-            setFile(e.target.files[0]);
-        };
+    // 파일 업로드
+    const [file, setFile] = useState(null);
+    const handleFileChange = (e) => {
+        setFile(e.target.files[0]);
+    };
 
-        // UUID 생성 (중복 방지)
-        const generateUUID = () => {
-            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-                return v.toString(16);
-            });
-        };
-
-        // 툴팁 팝업
-        const [isTooltipVisible, setIsTooltipVisible] = useState(false);
-        const handleMouseEnter = () => setIsTooltipVisible(true);
-        const handleMouseLeave = () => setIsTooltipVisible(false);
-
-        // 약관 버튼 비활성화
-        const [agreements, setAgreements] = useState({
-            terms: false,       // 분석 결과 활용 (필수)
-            disaster: false,    // 재해 정보 (선택)
-            building: false     // 건축물대장 (선택)
+    const generateUUID = () => {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            const r = (Math.random() * 16) | 0;
+            const v = c === 'x' ? r : ((r & 0x3) | 0x8);
+            return v.toString(16);
         });
+    };
 
-        // 약관 동의 ConsentItem key
-        const handleToggle = (key) => {
-            setAgreements(prev => ({...prev, [key]: !prev[key]}));
-        };
+    // 툴팁 팝업
+    const [isTooltipVisible, setIsTooltipVisible] = useState(false);
+    const handleMouseEnter = () => setIsTooltipVisible(true);
+    const handleMouseLeave = () => setIsTooltipVisible(false);
 
-        // 제출 검증
-        const isInvalid = !address.trim() || !file || !isSearched || !agreements.terms;
-        const [loading, setLoading] = useState(false);
-        const [error, setError] = useState(null);
+    // 약관 버튼 비활성화
+    const [agreements, setAgreements] = useState({
+        terms: false,       // 분석 결과 활용 (필수)
+        disaster: false,    // 재해 정보 (선택)
+        building: false     // 건축물대장 (선택)
+    });
 
-        if (loading) return <div>분석 중입니다...</div>;
-        if (error) return <div>{error}</div>;
+    // 약관 동의 ConsentItem key
+    const handleToggle = (key) => {
+        setAgreements(prev => ({ ...prev, [key]: !prev[key] }));
+    };
 
-        // 제출
-        const handleSubmit = async (e) => {
-                e.preventDefault();
+    // 제출 검증
+    const isInvalid = !address.trim() || !file || !isSearched || !agreements.terms;
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
-                if (isInvalid) return alert("필수 항목과 주소, 등기부등본을 확인해 주세요.");
+    if (loading) return <div>분석 중입니다...</div>;
+    if (error) return <div>{error}</div>;
 
                 const API_BASE_URL = process.env.REACT_APP_API_URL;
 
@@ -77,8 +71,7 @@ const RiskAnalysis = () => {
                     setLoading(true);
                     const commonRequestId = generateUUID();
 
-                    const requestNames = [];
-                    const requestPromises = [];
+        if (isInvalid) return alert("필수 항목과 주소, 등기부등본을 확인해 주세요.");
 
                     // 선택 - 재해
                     if (agreements.disaster) {
@@ -86,9 +79,14 @@ const RiskAnalysis = () => {
                         console.log("RiskAnalysis.js 재해:", address);
                         requestPromises.push(axios.get(`${API_BASE_URL}/api/risk/disaster/${address}`));
 
-                    }
+            const requestNames = [];
+            const requestPromises = [];
 
-                    const fullAddress = detailAddress.trim() ? `${address} ${detailAddress}` : address;
+            // 선택 - 재해
+            if (agreements.disaster) {
+                requestNames.push('disaster');
+                console.log("RiskAnalysis.js 재해:", address);
+                requestPromises.push(axios.get(`http://localhost:8080/api/risk/disaster/${address}`));
 
                     // 선택 - 건축물대장
                     if (agreements.building) {
@@ -174,19 +172,53 @@ const RiskAnalysis = () => {
                     setLoading(false);
                 }
             }
+            ));
+
+            const responses = await Promise.all(requestPromises);
+            console.log(`${address}에 대한 데이터 요청...`);
+
+            const responseData = {};
+            requestNames.forEach((name, index) => {
+                responseData[name] = responses[index].data;
+            });
+
+            const riskAnalysisResult = {
+                address: address,
+                detailAddress: detailAddress || null,
+                disasterData: responseData.disaster || null,
+                buildingData: responseData.building || null,
+                ocrData: responseData.ocr || null,
+                analysisData: responseData.analysis || null,
+                allResponses: responses.map(res => res.data)
+            };
+
+            navigate('/risk/report', { state: { riskAnalysisResult } });
+
+            responses.forEach((res, index) => {
+                console.log(`응답 데이터 [${index}]:`, res.data);
+            });
+
+        } catch
+        (error) {
+            console.error("데이터 요청 실패:", error.response?.data || error.message);
+            setError("종합 분석 중 오류가 발생했습니다.");
+        } finally {
+            setLoading(false);
+        }
+    }
         ;
 
-        return (
-            <MainLayout>
+    return (
+        <MainLayout>
 
-                <div className="risk-analysis-page">
+            <div className="risk-analysis-page">
 
-                    {/* Main Content */}
-                    <main className="risk-main-content">
-                        <section className="risk-main-section">
-                            <div className="risk-main-bg-blur"></div>
-                            <span className="risk-badge">
-                        <IoShieldCheckmarkOutline size={14}/> 안심 분석
+                {/* Main Content */}
+                <main className="risk-main-content">
+                    <section className="risk-main-section">
+                        <div className="risk-main-bg-blur"></div>
+                        <span className="risk-badge">
+                            <IoShieldCheckmarkOutline size={14} /> 안심 분석
                         </span>
                             <h2 className="risk-title">종합 위험도 분석하기</h2>
                             <p className="risk-description">
@@ -241,17 +273,18 @@ const RiskAnalysis = () => {
                                             />
                                         </div>
                                     </div>
+                                </div>
 
-                                    <hr className="risk-form-divider"/>
+                                <hr className="risk-form-divider" />
 
-                                    {/* 등기부등본 업로드 */}
-                                    <div className="risk-form-step">
-                                        <div className="risk-label-row">
-                                            <label className="risk-input-label">
-                                                <span className="risk-step-num">2</span> 등기부등본 위험 분석
-                                                <span className="risk-tag-required">필수</span>
-                                            </label>
-                                            <div className="risk-tooltip-container">
+                                {/* 등기부등본 업로드 */}
+                                <div className="risk-form-step">
+                                    <div className="risk-label-row">
+                                        <label className="risk-input-label">
+                                            <span className="risk-step-num">2</span> 등기부등본 위험 분석
+                                            <span className="risk-tag-required">필수</span>
+                                        </label>
+                                        <div className="risk-tooltip-container">
                                             <span className="risk-tooltip-trigger"
                                                   onMouseEnter={handleMouseEnter}
                                                   onMouseLeave={handleMouseLeave}>등기부등본?</span>
@@ -264,89 +297,99 @@ const RiskAnalysis = () => {
                                                 )}
                                             </div>
 
-                                        </div>
-                                        <div className="risk-upload-box">
-                                            <input type="file" className="risk-file-input" onChange={handleFileChange}/>
-                                            <div className="risk-upload-content">
-                                                <div className="risk-upload-icon-circle">
-                                                    <IoCloudUploadOutline size={30}/>
+                                            {isTooltipVisible && (
+                                                <div className="risk-tooltip-box">
+                                                    권리 분석을 위해 필요한 서류입니다.
                                                 </div>
                                                 <h3>{file ? `선택된 파일: ${file.name}` : "파일을 선택해 주세요"}</h3>
                                                 <p>PDF, JPG, PNG 파일 (10MB 이하)</p>
                                                 <div className="risk-select-btn">파일 선택</div>
                                             </div>
                                         </div>
+
                                     </div>
-
-                                    <hr className="risk-form-divider"/>
-
-                                    {/* 3: 약관 동의 */}
-                                    <div className="risk-form-step">
-                                        <label className="risk-input-label">
-                                            <span className="risk-step-num">3</span> 약관 동의
-                                        </label>
-                                        <div className="risk-consent-group">
-                                            <ConsentItem
-                                                title="분석 결과 활용 시 주의사항"
-                                                desc={<>
-                                                    분석 결과는 과거 데이터를 바탕으로 구성되었습니다.<br/>
-                                                    실제 매물 상태와 차이가 있을 수 있으므로, 의사 결정의 보조 수단으로만 사용하시길 권장합니다.
-                                                </>}
-                                                essential={true}
-                                                checked={agreements.terms}
-                                                onChange={() => handleToggle('terms')}
-                                            />
-                                            <ConsentItem
-                                                title="부동산 재해 위험 정보 조회 동의"
-                                                desc={"정부 공공 데이터를 활용하여 해당 법정동의 침수, 화재 등 재해 이력을 확인합니다."}
-                                                essential={false}
-                                                checked={agreements.disaster}
-                                                onChange={() => handleToggle('disaster')}
-                                            />
-                                            <ConsentItem
-                                                title="부동산 건축물대장 위험 정보 조회 동의"
-                                                desc="정부 공공 데이터를 활용하여 해당 주소의 건물 이력을 확인합니다."
-                                                essential={false}
-                                                checked={agreements.building}
-                                                onChange={() => handleToggle('building')}
-                                            />
+                                    <div className="risk-upload-box">
+                                        <input type="file" className="risk-file-input" onChange={handleFileChange} />
+                                        <div className="risk-upload-content">
+                                            <div className="risk-upload-icon-circle">
+                                                <IoCloudUploadOutline size={30} />
+                                            </div>
+                                            <h3>{file ? `선택된 파일: ${file.name}` : "업로드하려면 클릭하거나 파일을 끌어오세요."}</h3>
+                                            <p>PDF, JPG, PNG 파일 (10MB 이하)</p>
+                                            <div className="risk-select-btn">파일 선택</div>
                                         </div>
                                     </div>
+                                </div>
 
-                                    <div className="risk-submit-section">
-                                        {isInvalid && (
-                                            <div className="risk-validation-message">
-                                        <span>
-                                            필수 항목과 주소, 등기부등본을 확인해 주세요.
-                                        </span>
-                                            </div>
-                                        )}
+                                <hr className="risk-form-divider" />
 
-                                        <button type="button"
-                                                className={`risk-submit-btn ${isInvalid ? 'disabled' : ''}`}
-                                                disabled={isInvalid} onClick={handleSubmit}>
-                                            <span>위험 분석 시작하기</span>
-                                            <IoArrowForwardOutline size={20}/>
-                                        </button>
-
-                                        <p className="risk-terms-text">
-
-                                            시작하기를 클릭하면 <a href="#">서비스 약관</a>에 동의하게 됩니다.
-                                        </p>
+                                {/* 3: 약관 동의 */}
+                                <div className="risk-form-step">
+                                    <label className="risk-input-label">
+                                        <span className="risk-step-num">3</span> 약관 동의
+                                    </label>
+                                    <div className="risk-consent-group">
+                                        <ConsentItem
+                                            title="분석 결과 활용 시 주의사항"
+                                            desc={<>
+                                                분석 결과는 과거 데이터를 바탕으로 구성되었습니다.<br />
+                                                실제 매물 상태와 차이가 있을 수 있으므로, 의사 결정의 보조 수단으로만 사용하시길 권장합니다.
+                                            </>}
+                                            essential={true}
+                                            checked={agreements.terms}
+                                            onChange={() => handleToggle('terms')}
+                                        />
+                                        <ConsentItem
+                                            title="부동산 재해 위험 정보 조회 동의"
+                                            desc={"정부 공공 데이터를 활용하여 해당 법정동의 침수, 화재 등 재해 이력을 확인합니다."}
+                                            essential={false}
+                                            checked={agreements.disaster}
+                                            onChange={() => handleToggle('disaster')}
+                                        />
+                                        <ConsentItem
+                                            title="부동산 건축물대장 위험 정보 조회 동의"
+                                            desc="정부 공공 데이터를 활용하여 해당 주소의 건물 이력을 확인합니다."
+                                            essential={false}
+                                            checked={agreements.building}
+                                            onChange={() => handleToggle('building')}
+                                        />
                                     </div>
-                                </form>
-                            </div>
+                                </div>
 
+                                <div className="risk-submit-section">
+                                    {isInvalid && (
+                                        <div className="risk-validation-message">
+                                            <span>
+                                                필수 항목과 주소, 등기부등본을 확인해 주세요.
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    <button type="button"
+                                        className={`risk-submit-btn ${isInvalid ? 'disabled' : ''}`}
+                                        disabled={isInvalid} onClick={handleSubmit}>
+                                        <span>위험 분석 시작하기</span>
+                                        <IoArrowForwardOutline size={20} />
+                                    </button>
+
+                                    <p className="risk-terms-text">
+
+                                        시작하기를 클릭하면 <a href="/terms">서비스 약관</a>에 동의하게 됩니다.
+                                    </p>
+                                </div>
+                            </form>
                         </div>
-                    </main>
-                </div>
 
-            </MainLayout>
-        );
-    }
-;
+                    </div>
+                </main>
+            </div>
 
-const ConsentItem = ({title, desc, essential, checked, onChange}) => (
+        </MainLayout>
+    );
+}
+    ;
+
+const ConsentItem = ({ title, desc, essential, checked, onChange }) => (
     <label className="risk-consent-item">
         <div className="risk-checkbox-wrapper">
             <input
@@ -354,14 +397,14 @@ const ConsentItem = ({title, desc, essential, checked, onChange}) => (
                 checked={checked}
                 onChange={onChange}
             />
-            <span className="risk-custom-checkbox"><IoCheckmark/></span>
+            <span className="risk-custom-checkbox"><IoCheckmark /></span>
         </div>
         <div className="risk-consent-text">
             <div className="risk-consent-header">
                 <p className="risk-consent-title">{title}</p>
                 <span className={`risk-tag-${essential ? 'essential' : 'optional'}`}>
-          {essential ? '필수' : '선택'}
-        </span>
+                    {essential ? '필수' : '선택'}
+                </span>
             </div>
             <p className="risk-consent-desc">{desc}</p>
         </div>

@@ -48,12 +48,8 @@ public class PriceSearchService {
         this.officetelRentRepo = officetelRentRepo;
     }
 
-    public String getOfficialLandPriceByAddress(String address) {
-        // 1) 좌표
-        VworldGeocodeResponse geo = vworldGeocodeClient.getCoord(address, "ROAD");
-        System.out.println("Geocoding Result: " + geo);
-
-        // 2) PNU (도로명으로 안 나오면 Jibun으로 fallback)
+    public String getPnuByAddress(String address) {
+        // 1) PNU (도로명 검색)
         VworldSearchResponse search = vworldSearchClient.searchJuso(address);
         String pnu = null;
 
@@ -61,6 +57,8 @@ public class PriceSearchService {
                 && search.response.result.items != null && !search.response.result.items.isEmpty()) {
             pnu = search.response.result.items.get(0).id;
         }
+
+        // 2) PNU (지번 검색 fallback)
         if (pnu == null) {
             VworldSearchResponse search2 = vworldSearchClient.searchJibun(address);
             if (search2 != null && search2.response != null && search2.response.result != null
@@ -69,6 +67,16 @@ public class PriceSearchService {
                 pnu = search2.response.result.items.get(0).id;
             }
         }
+        return pnu;
+    }
+
+    public String getOfficialLandPriceByAddress(String address) {
+        // 1) 좌표
+        VworldGeocodeResponse geo = vworldGeocodeClient.getCoord(address, "ROAD");
+        System.out.println("Geocoding Result: " + geo);
+
+        // 2) PNU 찾기
+        String pnu = getPnuByAddress(address);
 
         if (pnu == null) {
             return "PNU를 찾지 못했습니다. 주소가 너무 추상적이거나 검색 결과가 없습니다.";

@@ -8,6 +8,10 @@ external:
     base-url: ${SEOUL_OPENAPI_BASE_URL:http://openapi.seoul.go.kr:8088}
     api-key: ${SEOUL_OPENAPI_KEY}
 
+  gemini:
+    base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com}
+    api-key: ${GEMINI_API_KEY}
+
 
 
 spring:

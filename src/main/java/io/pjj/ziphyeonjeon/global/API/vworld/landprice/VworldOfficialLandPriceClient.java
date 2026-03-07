@@ -17,11 +17,12 @@ public class VworldOfficialLandPriceClient {
                 .build();
     }
 
-    /** PNU로 공시지가 raw JSON 조회 (엔드포인트/파라미터는 실제 스펙에 맞게 수정) */
+    /** PNU로 공시지가 raw JSON 조회 (실제 스펙) */
     public String getOfficialLandPriceRaw(String pnu) {
-        String uri = "/req/landprice?key=" + props.getVworld().getApiKey()
-                + "&pnu=" + pnu
-                + "&format=json";
+        String uri = "/req/data?service=data&request=GetFeature&data=LP_PA_CBND_BUBUN"
+                + "&key=" + props.getVworld().getApiKey()
+                + "&domain=http://localhost:3000"
+                + "&attrFilter=pnu:=:" + pnu;
 
         return webClient.get()
                 .uri(uri)
