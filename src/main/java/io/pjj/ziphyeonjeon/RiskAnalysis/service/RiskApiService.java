@@ -38,7 +38,7 @@ public class RiskApiService {
         String district = addrDetails.get("district");
 
         String rawData = apiDisaster.fetchAllDisasterData(district);
-        List<DisasterDTO> disasterList = extractApiData(rawData, DisasterDTO.class);
+        List<DisasterDTO> disasterList = extractApiData(rawData, DisasterDTO.class, "body");
 
         return filterDisasterData(disasterList);
     }

@@ -65,15 +65,19 @@ const RiskAnalysis = () => {
     if (loading) return <div>분석 중입니다...</div>;
     if (error) return <div>{error}</div>;
 
-    // 제출
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+                const API_BASE_URL = process.env.REACT_APP_API_URL;
+
+                try {
+                    setLoading(true);
+                    const commonRequestId = generateUUID();
 
         if (isInvalid) return alert("필수 항목과 주소, 등기부등본을 확인해 주세요.");
 
-        try {
-            setLoading(true);
-            const commonRequestId = generateUUID();
+                    // 선택 - 재해
+                    if (agreements.disaster) {
+                        requestNames.push('disaster');
+                        console.log("RiskAnalysis.js 재해:", address);
+                        requestPromises.push(axios.get(`${API_BASE_URL}/api/risk/disaster/${address}`));
 
             const requestNames = [];
             const requestPromises = [];
@@ -84,58 +88,88 @@ const RiskAnalysis = () => {
                 console.log("RiskAnalysis.js 재해:", address);
                 requestPromises.push(axios.get(`http://localhost:8080/api/risk/disaster/${address}`));
 
-            }
-
-            const fullAddress = detailAddress.trim() ? `${address} ${detailAddress}` : address;
-
-            // 선택 - 건축물대장
-            if (agreements.building) {
-                requestNames.push('building');
-                console.log("RiskAnalysis.js 건축물대장:", fullAddress);
-                requestPromises.push(axios.get(`http://localhost:8080/api/risk/building/${fullAddress}`));
-            }
-
-            // 필수 - 파일 업로드
-            requestNames.push('upload');
-            const backFormData = new FormData();
-            backFormData.append('address', address);
-            backFormData.append('requestId', commonRequestId);
-            backFormData.append('file', file);
-
-            console.log("RiskAnalysis.js 파일 업로드:", commonRequestId);
-            requestPromises.push(axios.post('http://localhost:8080/api/risk/upload', backFormData));
-
-            // 필수 - 등기부등본 OCR
-            requestNames.push('ocr');
-            const ocrFormData = new FormData();
-            const message = {
-                version: 'V2',
-                requestId: commonRequestId,
-                timestamp: Date.now(),
-                lang: 'ko',
-                images: [
-                    {
-                        format: file.name.split('.').pop().toLowerCase(),
-                        name: 'registration_document'
+                    // 선택 - 건축물대장
+                    if (agreements.building) {
+                        requestNames.push('building');
+                        console.log("RiskAnalysis.js 건축물대장:", fullAddress);
+                        requestPromises.push(axios.get(`${API_BASE_URL}/api/risk/building/${fullAddress}`));
                     }
-                ]
-            };
-            ocrFormData.append('message', JSON.stringify(message));
-            ocrFormData.append('file', file);
-            console.log("RiskAnalysis.js 등기부등본 OCR:", file);
-            requestPromises.push(axios.post('http://localhost:8080/api/risk/ocr', ocrFormData));
 
-            // 분석 데이터 저장
-            requestNames.push('analysis');
-            const analysisFormData = new FormData();
-            analysisFormData.append('address', fullAddress);
-            analysisFormData.append('message', JSON.stringify(message));
-            analysisFormData.append('file', file);
+                    // 필수 - 파일 업로드
+                    requestNames.push('upload');
+                    const backFormData = new FormData();
+                    backFormData.append('address', address);
+                    backFormData.append('requestId', commonRequestId);
+                    backFormData.append('file', file);
 
-            console.log("RiskAnalysis.js 분석 저장:", address);
-            requestPromises.push(axios.post(`http://localhost:8080/api/risk/analysis/save`, analysisFormData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
+                    console.log("RiskAnalysis.js 파일 업로드:", commonRequestId);
+                    requestPromises.push(axios.post(`${API_BASE_URL}/api/risk/upload`, backFormData));
+
+                    // 필수 - 등기부등본 OCR
+                    requestNames.push('ocr');
+                    const ocrFormData = new FormData();
+                    const message = {
+                        version: 'V2',
+                        requestId: commonRequestId,
+                        timestamp: Date.now(),
+                        lang: 'ko',
+                        images: [
+                            {
+                                format: file.name.split('.').pop().toLowerCase(),
+                                name: 'registration_document'
+                            }
+                        ]
+                    };
+                    ocrFormData.append('message', JSON.stringify(message));
+                    ocrFormData.append('file', file);
+                    console.log("RiskAnalysis.js 등기부등본 OCR:", file);
+                    requestPromises.push(axios.post(`${API_BASE_URL}/api/risk/ocr`, ocrFormData));
+
+                    // 분석 데이터 저장
+                    requestNames.push('analysis');
+                    const analysisFormData = new FormData();
+                    analysisFormData.append('address', fullAddress);
+                    analysisFormData.append('message', JSON.stringify(message));
+                    analysisFormData.append('file', file);
+
+                    console.log("RiskAnalysis.js 분석 저장:", address);
+                    requestPromises.push(axios.post(`${API_BASE_URL}/api/risk/analysis/save`, analysisFormData, {
+                            headers: {
+                                'Content-Type': 'multipart/form-data'
+                            }
+                        }
+                    ));
+
+                    const responses = await Promise.all(requestPromises);
+                    console.log(`${address}에 대한 데이터 요청...`);
+
+                    const responseData = {};
+                    requestNames.forEach((name, index) => {
+                        responseData[name] = responses[index].data;
+                    });
+
+                    const riskAnalysisResult = {
+                        address: address,
+                        detailAddress: detailAddress || null,
+                        disasterData: responseData.disaster || null,
+                        buildingData: responseData.building || null,
+                        ocrData: responseData.ocr || null,
+                        analysisData: responseData.analysis || null,
+                        allResponses: responses.map(res => res.data)
+                    };
+
+                    navigate('/risk/report', {state: {riskAnalysisResult}});
+
+                    responses.forEach((res, index) => {
+                        console.log(`응답 데이터 [${index}]:`, res.data);
+                    });
+
+                } catch
+                    (error) {
+                    console.error("데이터 요청 실패:", error.response?.data || error.message);
+                    setError("종합 분석 중 오류가 발생했습니다.");
+                } finally {
+                    setLoading(false);
                 }
             }
             ));
@@ -186,55 +220,58 @@ const RiskAnalysis = () => {
                         <span className="risk-badge">
                             <IoShieldCheckmarkOutline size={14} /> 안심 분석
                         </span>
-                        <h2 className="risk-title">종합 위험도 분석하기</h2>
-                        <p className="risk-description">
-                            부동산 정보를 입력하고 등기부등본을 업로드해 주세요. <br />
-                            집현전이 법적 및 시세 위험을 분석해 드립니다. <br />
-                            예제 주소: 서울특별시 강서구 내발산동 742 114동
-                        </p>
-                    </section>
+                            <h2 className="risk-title">종합 위험도 분석하기</h2>
+                            <p className="risk-description">
+                                부동산 정보를 입력하고 등기부등본을 업로드해 주세요. <br/>
+                                집현전이 법적 및 시세 위험을 분석해 드립니다. <br/>
+                                <br/>
+                                서울특별시 동작구 신대방동 691-3 102호<br/>
+                                서울특별시 금천구 독산동 150-10
+                            </p>
+                        </section>
 
-                    <div className="risk-form-container">
-                        <div className="risk-card">
-                            <div className="risk-card-decoration"></div>
-                            <form className="risk-analysis-form" onSubmit={(e) => {
-                                e.preventDefault();
-                            }}>
-                                {/* 부동산 주소 */}
-                                <div className="risk-form-step">
-                                    <div className="risk-label-row">
-                                        <label className="risk-input-label">
-                                            <span className="risk-step-num">1</span> 재해, 건축물대장 위험 분석
-                                            <span className="risk-tag-required">필수</span>
-                                        </label>
-                                        <span className="risk-helper-text-link">지도 열기</span>
-                                    </div>
-                                    {/* 지번 주소 (메인 검색) */}
-                                    <div className="risk-search-input-wrapper">
-                                        <IoSearchOutline className="risk-search-icon" />
-                                        <input
-                                            type="text"
-                                            placeholder="지번주소를 입력하세요. 예) 서울특별시 용산구 한강대로 405"
-                                            value={address}
-                                            onChange={(e) => {
-                                                setAddress(e.target.value);
-                                                setIsSearched(false);
-                                            }}
-                                        />
-                                        <button type="button" className="risk-search-btn" onClick={addressButton}>검색
-                                        </button>
-                                    </div>
+                        <div className="risk-form-container">
+                            <div className="risk-card">
+                                <div className="risk-card-decoration"></div>
+                                <form className="risk-analysis-form" onSubmit={(e) => {
+                                    e.preventDefault();
+                                }}>
+                                    {/* 부동산 주소 */}
+                                    <div className="risk-form-step">
+                                        <div className="risk-label-row">
+                                            <label className="risk-input-label">
+                                                <span className="risk-step-num">1</span> 재해, 건축물대장 위험 분석
+                                                <span className="risk-tag-required">필수</span>
+                                            </label>
+                                            {/* 지도 연결 필요 검색창 주소 받아서 그에 해당하는 위치를 중심으로 지도 팝업
+                                            <span className="risk-helper-text-link">지도 열기</span>*/}
+                                        </div>
+                                        {/* 지번 주소 (메인 검색) */}
+                                        <div className="risk-search-input-wrapper">
+                                            <IoSearchOutline className="risk-search-icon"/>
+                                            <input
+                                                type="text"
+                                                placeholder="지번주소를 입력하세요. 예) 서울특별시 용산구 한강대로 405"
+                                                value={address}
+                                                onChange={(e) => {
+                                                    setAddress(e.target.value);
+                                                    setIsSearched(false);
+                                                }}
+                                            />
+                                            <button type="button" className="risk-search-btn" onClick={addressButton}>검색
+                                            </button>
+                                        </div>
 
-                                    {/* 상세 주소 (서브 입력) */}
-                                    <div className="risk-detail-input-wrapper">
-                                        <IoSearchOutline className="risk-detail-icon"
-                                            style={{ transform: 'scaleX(-1)' }} />
-                                        <input
-                                            type="text"
-                                            placeholder="상세주소를 입력하세요. 예) 101동 102호"
-                                            value={detailAddress}
-                                            onChange={(e) => setDetailAddress(e.target.value)}
-                                        />
+                                        {/* 상세 주소 (서브 입력) */}
+                                        <div className="risk-detail-input-wrapper">
+                                            <IoSearchOutline className="risk-detail-icon"/>
+                                            <input
+                                                type="text"
+                                                placeholder="상세주소를 입력하세요. 예) 101동 102호"
+                                                value={detailAddress}
+                                                onChange={(e) => setDetailAddress(e.target.value)}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
@@ -249,14 +286,25 @@ const RiskAnalysis = () => {
                                         </label>
                                         <div className="risk-tooltip-container">
                                             <span className="risk-tooltip-trigger"
-                                                onMouseEnter={handleMouseEnter}
-                                                onMouseLeave={handleMouseLeave}>등기부등본은 왜요?</span>
+                                                  onMouseEnter={handleMouseEnter}
+                                                  onMouseLeave={handleMouseLeave}>등기부등본?</span>
+
+                                                {isTooltipVisible && (
+                                                    <div className="risk-tooltip-box">
+                                                        권리 분석을 위해 필요한 서류입니다.<br/>
+                                                        분석 목적으로만 활용되며, 데이터를 저장하지 않습니다.
+                                                    </div>
+                                                )}
+                                            </div>
 
                                             {isTooltipVisible && (
                                                 <div className="risk-tooltip-box">
                                                     권리 분석을 위해 필요한 서류입니다.
                                                 </div>
-                                            )}
+                                                <h3>{file ? `선택된 파일: ${file.name}` : "파일을 선택해 주세요"}</h3>
+                                                <p>PDF, JPG, PNG 파일 (10MB 이하)</p>
+                                                <div className="risk-select-btn">파일 선택</div>
+                                            </div>
                                         </div>
 
                                     </div>

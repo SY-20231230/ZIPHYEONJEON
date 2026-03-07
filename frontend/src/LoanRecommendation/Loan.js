@@ -19,10 +19,13 @@ const Loan = () => {
         fetchLoans();
     }, []);
 
-    const fetchLoans = async () => {
-        try {
-            const response = await axios.get('http://localhost:8080/api/loan/list');
-            console.log(response.data);
+        const fetchLoans = async () => {
+
+            const API_BASE_URL = process.env.REACT_APP_API_URL;
+
+            try {
+                const response = await axios.get(`${API_BASE_URL}/api/loan/list`);
+                console.log(response.data);
 
             const { govLoans, bankLoans } = response.data;
 
@@ -36,16 +39,24 @@ const Loan = () => {
         }
     };
 
-    return (
-        <MainLayout>
-            <div className="loan-page-loan">
-                <div className="dashboard-container-loan">
-                    <Hero
-                        badgeText="맞춤 대출 분석"
-                        badgeIcon="auto_awesome"
-                        title='나에게 가장 유리한 최적의 대출을 찾아보세요'
-                        subtitle="다양한 금융권 대출 상품을 한눈에 비교하고 선택할 수 있습니다."
-                    />
+        const bankLogoMap = {
+            "IBK기업은행": "ibk",
+            "우리은행": "woori",
+            "신협": "sh",
+            "BNK경남은행": "bnk",
+            "부림저축은행": "bulim"
+        };
+
+        return (
+            <MainLayout>
+                <div className="loan-page-loan">
+                    <div className="dashboard-container-loan">
+                        <Hero
+                            badgeText="맞춤 대출 분석"
+                            badgeIcon="auto_awesome"
+                            title='나에게 가장 유리한 최적의 대출을 찾아보세요'
+                            subtitle="다양한 금융권 대출 상품을 한눈에 비교하고 선택할 수 있습니다."
+                        />
 
                     <div className="layout-grid-loan">
                         <div className="main-content-loan">
@@ -128,18 +139,26 @@ const Loan = () => {
                                                     <tr key={loan.snq}>
                                                         <td className="bank-info-loan">
                                                             <div
-                                                                className={`bank-logo-loan`}>{loan.logo}</div>
+                                                                className={`bank-logo-loan`}><img
+                                                                src={`/img/bankLogo/${bankLogoMap[loan.ofrInstNm] || 'default'}.png`}
+                                                                style={{
+                                                                    width: '100%',
+                                                                    height: '100%',
+                                                                    objectFit: 'contain'
+                                                                }}></img></div>
                                                             <span className="bank-name-loan">{loan.ofrInstNm}</span>
                                                         </td>
                                                         <td>{loan.finPrdNm.length > 13 ? loan.finPrdNm.substring(0, 13) + "..." : loan.finPrdNm}</td>
                                                         <td className="rate-td-loan">{loan.irt}</td>
                                                         <td>{loan.lnLmt}</td>
-                                                        <Link to={`/loan/detail/${loan.snq}`}
-                                                            style={{ textDecoration: 'none' }}>
-                                                            <td><span
-                                                                className="material-symbols-outlined">chevron_right</span>
-                                                            </td>
-                                                        </Link>
+                                                        <td>
+                                                            <Link to={`/loan/detail/${loan.snq}`}
+                                                                  style={{textDecoration: 'none'}}>
+                                                                <span
+                                                                    className="material-symbols-outlined">chevron_right</span>
+                                                            </Link>
+                                                        </td>
+
                                                     </tr>
                                                 ))}
                                             </tbody>
@@ -161,16 +180,12 @@ const Loan = () => {
                             </section>
                         </div>
 
-                        <aside className="sidebar-loan">
-                            <Card className="sidebar-item-loan" padding="24px">
-                                <div className="sidebar-header-loan">
-                                    <span className="material-symbols-outlined icon-blue">analytics</span>
-                                    나의 대출 역량
-                                </div>
-                                <div className="credit-score-loan">
-                                    <div className="score-loan">
-                                        <input type="text" defaultValue="???" />
-                                        <span>점</span>
+                            <aside className="sidebar-loan">
+                                {/*
+                                <Card className="sidebar-item-loan" padding="24px">
+                                    <div className="sidebar-header-loan">
+                                        <span className="material-symbols-outlined icon-blue">analytics</span>
+                                        나의 대출 역량
                                     </div>
                                     <p className="desc-loan">NICE / KCB 기준 점수를 입력해주세요.</p>
                                 </div>
@@ -182,17 +197,27 @@ const Loan = () => {
                                     <div className="link-item-loan"><span
                                         className="material-symbols-outlined">history</span> 최근 조회
                                     </div>
-                                </div>
-                            </Card>
+                                </Card>
+                                */}
 
-                            <Card className="sidebar-tip-loan" padding="24px">
-                                <Badge color="blue" variant="solid" className="mb-12">PRO TIP</Badge>
-                                <h4>대출 승인 확률을 높이는 법</h4>
-                                <p>전세 보증 보험 가입이 가능한 매물을 선택하면 대출 금리 우대 혜택을 받을 수 있습니다.</p>
-                                <Button variant="ghost" icon="arrow_forward" className="p-0 text-blue">분석 리포트
-                                    확인</Button>
-                            </Card>
-                        </aside>
+                                <Card className="sidebar-tip-loan" padding="24px">
+                                    <Badge color="blue" variant="solid" className="mb-12">PRO TIP</Badge>
+                                    <h4>대출 승인 확률을 높이는 법</h4>
+                                    <p>전세 보증 보험 가입이 가능한 매물을 선택하면 대출 금리 우대 혜택을 받을 수 있습니다.</p>
+                                    {/*<Button variant="ghost" icon="arrow_forward" className="p-0 text-blue">분석 리포트*/}
+                                    {/*    확인</Button>*/}
+                                </Card>
+                            </aside>
+                        </div>
+
+                        <footer className="loan-footer-notice-loan">
+                            <h4>꼭 확인하세요!</h4>
+                            <ul>
+                                <li>표시된 금리는 최저금리 기준이며, 개인의 환경에 따라 달라질 수 있습니다.</li>
+                                <li>정부지원 상품은 관련 법규 변화에 따라 상시 변경될 수 있습니다.</li>
+                                <li>본 서비스에서 제공하는 정보는 참고용이며, 최종 계약은 금융기관에서 진행하시기 바랍니다.</li>
+                            </ul>
+                        </footer>
                     </div>
 
                     <footer className="loan-footer-notice-loan">

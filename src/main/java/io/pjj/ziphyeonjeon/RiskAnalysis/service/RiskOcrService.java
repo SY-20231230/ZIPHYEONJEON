@@ -1,9 +1,12 @@
 package io.pjj.ziphyeonjeon.RiskAnalysis.service;
 
 import io.pjj.ziphyeonjeon.RiskAnalysis.dto.OcrDTO;
-import io.pjj.ziphyeonjeon.RiskAnalysis.entity.RiskUpload;
+import io.pjj.ziphyeonjeon.RiskAnalysis.entity.AnalysisTargetDoc;
+import io.pjj.ziphyeonjeon.RiskAnalysis.entity.Users;
 import io.pjj.ziphyeonjeon.RiskAnalysis.repository.RiskUploadRepository;
 import io.pjj.ziphyeonjeon.global.API.ApiNaverOcr;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -23,6 +26,9 @@ import java.util.regex.Pattern;
 
 @Service
 public class RiskOcrService {
+
+    @PersistenceContext
+    private EntityManager em;
 
     // 파일 업로드 경로
     private final String UPLOAD_PATH = Paths.get(System.getProperty("user.dir"), "src", "main", "resources", "uploads").toString();
@@ -62,8 +68,10 @@ public class RiskOcrService {
         Path targetPath = Paths.get(UPLOAD_PATH, saveName);
         file.transferTo(targetPath);
 
-        RiskUpload upload = new RiskUpload(address, saveName);
-        riskUploadRepository.save(upload);
+        Users tempUser = em.getReference(Users.class, 1L);
+
+        AnalysisTargetDoc targetDoc = new AnalysisTargetDoc(tempUser, address, saveName);
+        riskUploadRepository.save(targetDoc);
 
         return saveName;
     }

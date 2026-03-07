@@ -1,7 +1,7 @@
 package io.pjj.ziphyeonjeon.RiskAnalysis.service;
 
 import io.pjj.ziphyeonjeon.RiskAnalysis.dto.DisasterDTO;
-import io.pjj.ziphyeonjeon.RiskAnalysis.entity.RiskAnalysis;
+import io.pjj.ziphyeonjeon.RiskAnalysis.entity.RiskAnalysisResult;
 import io.pjj.ziphyeonjeon.RiskAnalysis.repository.RiskAnalysisRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +30,7 @@ public class RiskAnalysisService {
     }
 
     @Transactional
-    public RiskAnalysis saveTotalRiskAnalysis(String address, String message, MultipartFile ocrFile) {
+    public RiskAnalysisResult saveTotalRiskAnalysis(String address, String message, MultipartFile ocrFile) {
         var disasterResult = analyzeDisasterRisk(address);
         var buildingResult = analyzeBuildingRisk(address);
         var ocrResult = analyzeRecordOfTitleRisk(message, ocrFile);
@@ -40,11 +40,11 @@ public class RiskAnalysisService {
         BigDecimal oScore = BigDecimal.valueOf(ocrResult.data().getFirst().score());
 
         BigDecimal totalScore = dScore.add(bScore).add(oScore)
-                .divide(BigDecimal.valueOf(3), 2, RoundingMode.HALF_UP);
+                .divide(BigDecimal.valueOf(3), 0, RoundingMode.HALF_UP);
 
         String grade = calculateTotalGrade(totalScore);
 
-        RiskAnalysis analysis = new RiskAnalysis(totalScore, grade);
+        RiskAnalysisResult analysis = new RiskAnalysisResult(totalScore, grade);
         analysis.setAddress(address);
         analysis.setAnalyzedAt(LocalDateTime.now());
         analysis.setTotalSafetyScore(totalScore);

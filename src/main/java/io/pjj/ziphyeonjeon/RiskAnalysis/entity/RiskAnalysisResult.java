@@ -9,9 +9,9 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "RISK_ANALYSIS_RESULT")
-public class RiskAnalysis {
+public class RiskAnalysisResult {
 
-    protected RiskAnalysis() {
+    protected RiskAnalysisResult() {
     }
 
     @Id
@@ -44,7 +44,7 @@ public class RiskAnalysis {
     @Column(name = "LEGAL_ANALYSIS_RESULT")
     private String legalAnalysisResult;
 
-    public RiskAnalysis(BigDecimal totalSafetyScore, String finalGrade) {
+    public RiskAnalysisResult(BigDecimal totalSafetyScore, String finalGrade) {
         this.totalSafetyScore = totalSafetyScore;
         this.finalGrade = finalGrade;
         this.analyzedAt = LocalDateTime.now();

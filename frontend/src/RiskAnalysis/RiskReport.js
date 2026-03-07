@@ -44,18 +44,18 @@ const RiskReport = () => {
                 <div className="dashboard-container-risk">
 
                     {/* Process Steps */}
-                    <section className="process-section-risk">
-                        <div className="progress-track-risk">
-                            <div className="progress-fill-risk" style={{ width: '55%' }}></div>
-                        </div>
-                        <div className="steps-container-risk">
-                            <Step icon="location_on" label="주소<br/>분석" active />
-                            <Step icon="fact_check" label="등기부등본<br/>확인" active />
-                            <Step icon="analytics" label="위험성<br/>평가" current />
-                            <Step icon="description" label="계약서<br/>초안" disabled />
-                            <Step icon="verified" label="최종<br/>평가" disabled />
-                        </div>
-                    </section>
+                    {/*<section className="process-section-risk">*/}
+                    {/*    <div className="progress-track-risk">*/}
+                    {/*        <div className="progress-fill-risk" style={{width: '55%'}}></div>*/}
+                    {/*    </div>*/}
+                    {/*    <div className="steps-container-risk">*/}
+                    {/*        <Step icon="location_on" label="주소<br/>분석" active/>*/}
+                    {/*        <Step icon="fact_check" label="등기부등본<br/>확인" active/>*/}
+                    {/*        <Step icon="analytics" label="위험성<br/>평가" current/>*/}
+                    {/*        <Step icon="description" label="계약서<br/>초안" disabled/>*/}
+                    {/*        <Step icon="verified" label="최종<br/>평가" disabled/>*/}
+                    {/*    </div>*/}
+                    {/*</section>*/}
 
                     <Hero
                         title={resultData.analysisData.address}
@@ -104,7 +104,7 @@ const RiskReport = () => {
                                                 ) : (
                                                     resultData.disasterData.data[0].disasterData.map((item, index) => (
                                                         <div key={index} className="risk-item">
-                                                            <strong>{item.DST_SE_NM}</strong> ({item.REG_YMD})
+                                                            <strong>{item.DST_SE_NM}</strong> ({item.REG_YMD.split('.')[0]})
                                                         </div>
                                                     ))
                                                 )}

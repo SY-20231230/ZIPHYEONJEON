@@ -96,8 +96,9 @@ const LoanList = () => {
 
     useEffect(() => {
         const fetchLoans = async () => {
+            const API_BASE_URL = process.env.REACT_APP_API_URL;
             try {
-                const response = await axios.get('http://localhost:8080/api/loan/list');
+                const response = await axios.get(`${API_BASE_URL}/api/loan/list`);
                 console.log(response.data);
                 const { govLoans, bankLoans } = response.data;
                 const combinedLoans = [

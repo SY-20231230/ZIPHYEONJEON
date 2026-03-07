@@ -3,7 +3,7 @@ package io.pjj.ziphyeonjeon.RiskAnalysis.controller;
 import io.pjj.ziphyeonjeon.RiskAnalysis.dto.BuildingDTO;
 import io.pjj.ziphyeonjeon.RiskAnalysis.dto.DisasterDTO;
 import io.pjj.ziphyeonjeon.RiskAnalysis.dto.OcrDTO;
-import io.pjj.ziphyeonjeon.RiskAnalysis.entity.RiskAnalysis;
+import io.pjj.ziphyeonjeon.RiskAnalysis.entity.RiskAnalysisResult;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -79,7 +79,7 @@ public class RiskController {
                                             @RequestParam String message,
                                             @RequestParam MultipartFile file) {
         try {
-            RiskAnalysis savedResult = riskAnalysisService.saveTotalRiskAnalysis(address, message, file);
+            RiskAnalysisResult savedResult = riskAnalysisService.saveTotalRiskAnalysis(address, message, file);
 
             return ResponseEntity.ok(savedResult);
         } catch (Exception e) {
