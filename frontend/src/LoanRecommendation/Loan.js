@@ -26,7 +26,7 @@ const Loan = () => {
 
     const fetchLoans = async () => {
 
-        const API_BASE_URL = process.env.REACT_APP_API_URL;
+        const API_BASE_URL = process.env.REACT_APP_API_URL || "http://158.180.80.19:8080";
 
         try {
             const response = await axios.get(`${API_BASE_URL}/api/loan/list`);
