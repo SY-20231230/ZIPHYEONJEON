@@ -16,7 +16,7 @@ const INST_OPTIONS = ["공공", "민간"]
 const LoanList = () => {
     const location = useLocation();
 
-    const API_BASE_URL = process.env.REACT_APP_API_URL;
+    const API_BASE_URL = process.env.REACT_APP_API_URL || "http://158.180.80.19:8080";
 
     const [loans, setLoans] = useState([]);
     const [loading, setLoading] = useState(true);

@@ -21,7 +21,7 @@ import {useNavigate} from "react-router-dom";
 const RiskAnalysis = () => {
         const navigate = useNavigate();
 
-        const API_BASE_URL = process.env.REACT_APP_API_URL;
+        const API_BASE_URL = process.env.REACT_APP_API_URL || "http://158.180.80.19:8080";
         const [address, setAddress] = useState('');
         const [detailAddress, setDetailAddress] = useState('');
         const [isSearched, setIsSearched] = useState(false);
@@ -43,7 +43,7 @@ const RiskAnalysis = () => {
         // UUID 생성 (중복 방지)
         const generateUUID = () => {
             return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-                let r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                let r = (Math.random() * 16) | 0, v = c === 'x' ? r : ((r & 0x3) | 0x8);
                 return v.toString(16);
             });
         };
@@ -338,7 +338,7 @@ const RiskAnalysis = () => {
 
                                         <p className="risk-terms-text">
 
-                                            시작하기를 클릭하면 <a href="#">서비스 약관</a>에 동의하게 됩니다.
+                                            시작하기를 클릭하면 <a href="#!" onClick={(e) => e.preventDefault()}>서비스 약관</a>에 동의하게 됩니다.
                                         </p>
                                     </div>
                                 </form>
