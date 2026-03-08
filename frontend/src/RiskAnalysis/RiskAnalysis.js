@@ -169,9 +169,9 @@ const RiskAnalysis = () => {
 
                     navigate('/risk/report', {state: {riskAnalysisResult}});
 
-                    responses.forEach((res, index) => {
-                        // console.log(`응답 데이터 [${index}]:`, res.data);
-                    });
+                    // responses.forEach((res, index) => {
+                    //     console.log(`응답 데이터 [${index}]:`, res.data);
+                    // });
 
                 } catch
                     (error) {
@@ -338,7 +338,7 @@ const RiskAnalysis = () => {
 
                                         <p className="risk-terms-text">
 
-                                            시작하기를 클릭하면 <a href="#!" onClick={(e) => e.preventDefault()}>서비스 약관</a>에 동의하게 됩니다.
+                                            시작하기를 클릭하면 <a href="#" onClick={(e) => e.preventDefault()}>서비스 약관</a>에 동의하게 됩니다.
                                         </p>
                                     </div>
                                 </form>
