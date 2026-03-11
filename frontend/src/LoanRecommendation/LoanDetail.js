@@ -25,7 +25,7 @@ import axios from "axios";
 const LoanDetail = () => {
     const location = useLocation();
 
-    const API_BASE_URL = process.env.REACT_APP_API_URL || "http://ziphyeonjeon.kro.kr";
+    const API_BASE_URL = process.env.REACT_APP_API_URL || "https://ziphyeonjeon.kro.kr";
 
     const { snq } = useParams();
     const [loanData, setLoanData] = useState(null);

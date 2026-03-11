@@ -21,7 +21,7 @@ import { useNavigate } from "react-router-dom";
 const RiskAnalysis = () => {
     const navigate = useNavigate();
 
-    const API_BASE_URL = process.env.REACT_APP_API_URL || "http://ziphyeonjeon.kro.kr";
+    const API_BASE_URL = process.env.REACT_APP_API_URL || "https://ziphyeonjeon.kro.kr";
     const [address, setAddress] = useState('');
     const [detailAddress, setDetailAddress] = useState('');
     const [isSearched, setIsSearched] = useState(false);
