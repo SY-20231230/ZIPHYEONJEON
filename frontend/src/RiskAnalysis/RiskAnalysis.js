@@ -199,9 +199,6 @@ const RiskAnalysis = () => {
                         <p className="risk-description">
                             부동산 정보를 입력하고 등기부등본을 업로드해 주세요. <br />
                             집현전이 법적 및 시세 위험을 분석해 드립니다. <br />
-                            <br />
-                            서울특별시 동작구 신대방동 691-3 102호<br />
-                            서울특별시 금천구 독산동 150-10
                         </p>
                     </section>
 

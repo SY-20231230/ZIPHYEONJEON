@@ -4,6 +4,7 @@ import io.pjj.ziphyeonjeon.RiskAnalysis.dto.BuildingDTO;
 import io.pjj.ziphyeonjeon.RiskAnalysis.dto.DisasterDTO;
 import io.pjj.ziphyeonjeon.RiskAnalysis.dto.OcrDTO;
 import io.pjj.ziphyeonjeon.RiskAnalysis.entity.RiskAnalysisResult;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,16 +17,11 @@ import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/risk")
-@CrossOrigin(origins = "*", allowedHeaders = "*")
+@RequiredArgsConstructor
 public class RiskController {
 
     private final RiskAnalysisService riskAnalysisService;
     private final RiskOcrService riskOcrService;
-
-    public RiskController(RiskAnalysisService riskAnalysisService, RiskOcrService riskOcrService) {
-        this.riskAnalysisService = riskAnalysisService;
-        this.riskOcrService = riskOcrService;
-    }
 
     // 재해 위험 정보 조회
     @GetMapping("/disaster/{address}")
