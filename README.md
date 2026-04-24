@@ -20,19 +20,8 @@
 #### 윤성용
 Product Owner (PO) / AI Engineer / Backend Developer
 
-Defined product features and prioritized roadmap
-Designed and developed backend systems
-Built and integrated AI models
-
 #### 정지훈
 Project Manager (PM) / Backend & AI Engineer
 
-Managed project timeline and coordination
-Wrote and maintained requirements documentation
-Contributed to backend and AI development
-
 #### 김동규
 Frontend Developer / Chatbot AI Engineer
-
-Developed user interface using frontend technologies
-Built and integrated chatbot model
