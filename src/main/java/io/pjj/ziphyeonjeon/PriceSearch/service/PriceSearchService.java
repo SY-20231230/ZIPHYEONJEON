@@ -517,125 +517,99 @@ public class PriceSearchService {
                 .build();
     }
 
-    // --- P-006: 지역 시세 변동 추이 (그래프) ---
-    public io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceTrendResponse getRegionalTrend(String address_code,
-            String time_unit) {
-        // 명세서의 address_code는 실제로는 행정동 코드일 수 있으나, 현재 DB 구조상 주소 문자열로 검색 지원
-        String address = address_code;
-        String sigungu = parseSigungu(address);
-        String dong = parseJibunDong(address);
-
-        java.util.Map<String, io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceTrendResponse.TrendItem> trendMap = new java.util.HashMap<>();
-
-        if (sigungu != null && dong != null) {
-            // 1. 아파트
-            processTrendData(houseRepo.findMonthlyAverageTradeUnitPrice(sigungu, dong, "아파트"), trendMap,
-                    (item, val) -> item.setAptSale(val));
-            processTrendData(houseRepo.findMonthlyAverageJeonseUnitPrice(sigungu, dong, "아파트"), trendMap,
-                    (item, val) -> item.setAptJeonse(val));
-            processTrendData(houseRepo.findMonthlyAverageWolseAmount(sigungu, dong, "아파트"), trendMap,
-                    (item, val) -> item.setAptWolse(val));
-
-            // 2. 빌라
-            processTrendData(houseRepo.findMonthlyAverageTradeUnitPrice(sigungu, dong, "연립다세대"), trendMap,
-                    (item, val) -> item.setVillaSale(val));
-            processTrendData(houseRepo.findMonthlyAverageJeonseUnitPrice(sigungu, dong, "연립다세대"), trendMap,
-                    (item, val) -> item.setVillaJeonse(val));
-            processTrendData(houseRepo.findMonthlyAverageWolseAmount(sigungu, dong, "연립다세대"), trendMap,
-                    (item, val) -> item.setVillaWolse(val));
-
-            // 3. 오피스텔
-            processTrendData(houseRepo.findMonthlyAverageTradeUnitPrice(sigungu, dong, "오피스텔"), trendMap,
-                    (item, val) -> item.setOfficetelSale(val));
-            processTrendData(houseRepo.findMonthlyAverageJeonseUnitPrice(sigungu, dong, "오피스텔"), trendMap,
-                    (item, val) -> item.setOfficetelJeonse(val));
-            processTrendData(houseRepo.findMonthlyAverageWolseAmount(sigungu, dong, "오피스텔"), trendMap,
-                    (item, val) -> item.setOfficetelWolse(val));
+    // --- P-006: 지역 시세 변동 추이 (그래프 단독 기능 900% 최적화 적용) ---
+    public io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceTrendResponse getRegionalTrend(String sigungu, String startMonth, String endMonth) {
+        
+        java.util.List<io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceTrendResponse.TrendItem> trends = new java.util.ArrayList<>();
+        
+        if (sigungu != null && !sigungu.isEmpty()) {
+            // 단 1번의 쿼리로 9가지 평균가 데이터를 기간에 맞춰 모두 가져옴
+            java.util.List<Object[]> rawData = houseRepo.findComprehensiveMonthlyTrendGraphData(sigungu, startMonth, endMonth);
+            
+            if (rawData != null) {
+                for (Object[] row : rawData) {
+                    String month = String.valueOf(row[0]);
+                    
+                    io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceTrendResponse.TrendItem item = 
+                        io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceTrendResponse.TrendItem.builder()
+                        .period(month)
+                        .build();
+                    
+                    // row[1] ~ row[9] 순서에 맞게 세팅 (반올림 처리)
+                    item.setAptSale(formatVal((Double)row[1]));
+                    item.setAptJeonse(formatVal((Double)row[2]));
+                    item.setAptWolse(formatVal((Double)row[3]));
+                    
+                    item.setVillaSale(formatVal((Double)row[4]));
+                    item.setVillaJeonse(formatVal((Double)row[5]));
+                    item.setVillaWolse(formatVal((Double)row[6]));
+                    
+                    item.setOfficetelSale(formatVal((Double)row[7]));
+                    item.setOfficetelJeonse(formatVal((Double)row[8]));
+                    item.setOfficetelWolse(formatVal((Double)row[9]));
+                    
+                    trends.add(item);
+                }
+            }
         }
 
-        // Filter: 202401 ~ 202512
-        java.util.List<io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceTrendResponse.TrendItem> trends = trendMap
-                .values().stream()
-                .filter(item -> {
-                    String p = item.getPeriod();
-                    return p != null && p.compareTo("202401") >= 0 && p.compareTo("202512") <= 0;
-                })
-                .sorted(java.util.Comparator
-                        .comparing(
-                                io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceTrendResponse.TrendItem::getPeriod))
-                .collect(Collectors.toList());
-
         return io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceTrendResponse.builder()
-                .regionName(sigungu + " " + dong)
+                .regionName(sigungu)
                 .trends(trends)
                 .build();
     }
 
-    private void processTrendData(java.util.List<Object[]> rawData,
-            java.util.Map<String, io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceTrendResponse.TrendItem> trendMap,
-            java.util.function.BiConsumer<io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceTrendResponse.TrendItem, Double> setter) {
-        if (rawData == null)
-            return;
-
-        for (Object[] row : rawData) {
-            // Row: [Period, AvgPrice]
-            // Period can be String (Apt) or Integer (Villa/Off)
-            String period = String.valueOf(row[0]);
-            Double val = (Double) row[1];
-
-            if (val == null)
-                continue;
-
-            // 소수점 1자리 반올림 (만원/m2 단위)
-            val = Math.round(val * 10.0) / 10.0;
-
-            io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceTrendResponse.TrendItem item = trendMap.getOrDefault(
-                    period,
-                    io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceTrendResponse.TrendItem.builder().period(period)
-                            .build());
-
-            setter.accept(item, val);
-            trendMap.put(period, item);
-        }
+    private Double formatVal(Double val) {
+        if (val == null) return null;
+        return Math.round(val * 10.0) / 10.0;
     }
 
-    // --- P-001: 국토부 실거래가 조회 (Spec 준수) ---
-    public java.util.List<io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceSearchResultResponse> searchMolit(
-            io.pjj.ziphyeonjeon.PriceSearch.dto.request.MolitTradeSearchRequest request) {
+    // --- P-001: 통합 실거래가 조회 (페이징 & 기간 설정 & 그래프) ---
+    public io.pjj.ziphyeonjeon.PriceSearch.dto.response.HouseSearchResponse searchHouseWithPagination(
+            io.pjj.ziphyeonjeon.PriceSearch.dto.request.HouseSearchRequest request) {
 
-        java.util.List<io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceSearchResultResponse> results = new java.util.ArrayList<>();
+        String sigungu = request.getSigungu() != null ? request.getSigungu() : "";
+        String propertyType = request.getPropertyType();
+        String dealType = request.getDealType();
+        String startMonth = request.getStartMonth();
+        String endMonth = request.getEndMonth();
 
-        String sigungu = request.getSigungu_name();
-        String type = request.getBuilding_type();
-        String yyyyMM = request.getDeal_year_month();
-        String dealType = request.getDeal_type();
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
+                request.getPage(), request.getSize());
 
-        if (sigungu == null || type == null || yyyyMM == null) {
-            return results;
+        // 1. 페이징된 매물 리스트 조회
+        org.springframework.data.domain.Page<House> pageResult = houseRepo
+                .findBySigunguContainingAndPropertyTypeAndDealTypeAndContractYmBetweenOrderByContractYmDescContractDayDesc(
+                        sigungu, propertyType, dealType, startMonth, endMonth, pageable);
+
+        // 2. 지역 시세 변동 그래프 데이터 조회 (3.3m2 / 평당 평균가)
+        java.util.List<Object[]> graphRaw = houseRepo.findMonthlyTrendGraphData(
+                sigungu, propertyType, dealType, startMonth, endMonth);
+
+        java.util.List<io.pjj.ziphyeonjeon.PriceSearch.dto.response.HouseSearchResponse.TrendData> trendList = new java.util.ArrayList<>();
+        if (graphRaw != null) {
+            for (Object[] row : graphRaw) {
+                String month = String.valueOf(row[0]);
+                Double val = (Double) row[1];
+                if (val != null) {
+                    val = Math.round(val * 10.0) / 10.0; // 소수점 1자리 반올림
+                    trendList.add(io.pjj.ziphyeonjeon.PriceSearch.dto.response.HouseSearchResponse.TrendData.builder()
+                            .month(month)
+                            .avgPricePerPyeong(val)
+                            .build());
+                }
+            }
         }
 
-        boolean includeSale = (dealType == null || dealType.isEmpty() || dealType.equals("전체")
-                || dealType.equals("매매"));
-        boolean includeRent = (dealType == null || dealType.isEmpty() || dealType.equals("전체")
-                || dealType.equals("전세") || dealType.equals("월세"));
-
-        String propertyType = null;
-        if (type.contains("아파트"))
-            propertyType = "아파트";
-        else if (type.contains("빌라") || type.contains("연립") || type.contains("다세대"))
-            propertyType = "연립다세대";
-        else if (type.contains("오피스텔"))
-            propertyType = "오피스텔";
-
-        final String finalPropertyType = propertyType;
-        houseRepo.findBySigunguContainingAndContractYm(sigungu, yyyyMM)
-                .stream()
-                .filter(e -> finalPropertyType == null || finalPropertyType.equals(e.getPropertyType()))
-                .filter(e -> dealType == null || dealType.isEmpty() || dealType.equals("전체")
-                        || dealType.equals(e.getDealType()))
-                .forEach(e -> results.add(toDto(e)));
-
-        return results;
+        return io.pjj.ziphyeonjeon.PriceSearch.dto.response.HouseSearchResponse.builder()
+                .content(pageResult.getContent())
+                .pageNo(pageResult.getNumber())
+                .pageSize(pageResult.getSize())
+                .totalElements(pageResult.getTotalElements())
+                .totalPages(pageResult.getTotalPages())
+                .isLast(pageResult.isLast())
+                .trendGraph(trendList)
+                .build();
     }
 
     public java.util.List<io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceSearchResultResponse> searchByComplexName(

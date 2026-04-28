@@ -31,11 +31,11 @@ public class PriceSearchController {
         return priceSearchService.searchByComplexName(complexName, dealType);
     }
 
-    // P-001
+    // P-001 (개편된 실거래가 통합 검색: 페이징 + 그래프)
     @GetMapping("/molit")
-    public List<io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceSearchResultResponse> searchMolit(
-            @org.springframework.web.bind.annotation.ModelAttribute io.pjj.ziphyeonjeon.PriceSearch.dto.request.MolitTradeSearchRequest request) {
-        return priceSearchService.searchMolit(request);
+    public io.pjj.ziphyeonjeon.PriceSearch.dto.response.HouseSearchResponse searchMolit(
+            @org.springframework.web.bind.annotation.ModelAttribute io.pjj.ziphyeonjeon.PriceSearch.dto.request.HouseSearchRequest request) {
+        return priceSearchService.searchHouseWithPagination(request);
     }
 
     // P-002
@@ -75,9 +75,10 @@ public class PriceSearchController {
 
     @org.springframework.web.bind.annotation.GetMapping("/trend")
     public io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceTrendResponse getRegionalTrend(
-            @RequestParam("address_code") String addressCode,
-            @RequestParam(value = "time_unit", defaultValue = "월") String timeUnit) {
-        return priceSearchService.getRegionalTrend(addressCode, timeUnit);
+            @RequestParam String sigungu,
+            @RequestParam String startMonth,
+            @RequestParam String endMonth) {
+        return priceSearchService.getRegionalTrend(sigungu, startMonth, endMonth);
     }
 
     // P-007
