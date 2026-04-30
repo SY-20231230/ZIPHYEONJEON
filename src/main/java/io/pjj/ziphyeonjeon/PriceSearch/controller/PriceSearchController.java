@@ -106,4 +106,16 @@ public class PriceSearchController {
             @org.springframework.web.bind.annotation.RequestBody io.pjj.ziphyeonjeon.PriceSearch.dto.request.PriceSuggestionRequest request) {
         return priceSearchService.suggestPrice(request);
     }
+    @org.springframework.web.bind.annotation.PostMapping("/directory")
+    public org.springframework.data.domain.Page<io.pjj.ziphyeonjeon.PriceSearch.dto.response.PropertyDirectoryResponse> getPropertyDirectory(
+            @org.springframework.web.bind.annotation.RequestBody io.pjj.ziphyeonjeon.PriceSearch.dto.request.PropertyDirectoryRequest request) {
+        return priceSearchService.getPropertyDirectory(request);
+    }
+
+    // P-010: 매물 배틀 보드용 올인원 프로필
+    @GetMapping("/profile/{houseId}")
+    public io.pjj.ziphyeonjeon.PriceSearch.dto.response.PropertyProfileResponse getPropertyProfile(
+            @org.springframework.web.bind.annotation.PathVariable Long houseId) {
+        return priceSearchService.getPropertyProfile(houseId);
+    }
 }

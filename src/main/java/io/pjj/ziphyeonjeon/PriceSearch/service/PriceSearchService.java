@@ -24,18 +24,21 @@ public class PriceSearchService {
     private final SeoulOpenApiClient seoulOpenApiClient;
 
     private final io.pjj.ziphyeonjeon.PriceSearch.repository.HouseRepository houseRepo;
+    private final io.pjj.ziphyeonjeon.ai.repository.AnalysisRepository analysisRepo;
 
     public PriceSearchService(
             VworldGeocodeClient vworldGeocodeClient,
             VworldSearchClient vworldSearchClient,
             VworldOfficialLandPriceClient vworldOfficialLandPriceClient,
             SeoulOpenApiClient seoulOpenApiClient,
-            io.pjj.ziphyeonjeon.PriceSearch.repository.HouseRepository houseRepo) {
+            io.pjj.ziphyeonjeon.PriceSearch.repository.HouseRepository houseRepo,
+            io.pjj.ziphyeonjeon.ai.repository.AnalysisRepository analysisRepo) {
         this.vworldGeocodeClient = vworldGeocodeClient;
         this.vworldSearchClient = vworldSearchClient;
         this.vworldOfficialLandPriceClient = vworldOfficialLandPriceClient;
         this.seoulOpenApiClient = seoulOpenApiClient;
         this.houseRepo = houseRepo;
+        this.analysisRepo = analysisRepo;
     }
 
     public String getPnuByAddress(String address) {
@@ -440,8 +443,9 @@ public class PriceSearchService {
                 propertyType = "오피스텔";
 
             // 1. 가장 최근 매매 실거래가 딱 1건만 조회 (면적 ±10% 내외)
-            House recentTrade = houseRepo.findTopBySigunguContainingAndEmdContainingAndPropertyTypeAndDealTypeAndAreaBetweenOrderByContractYmDescContractDayDesc(
-                    sigungu, dong, propertyType, "매매", minArea, maxArea);
+            House recentTrade = houseRepo
+                    .findTopBySigunguContainingAndEmdContainingAndPropertyTypeAndDealTypeAndAreaBetweenOrderByContractYmDescContractDayDesc(
+                            sigungu, dong, propertyType, "매매", minArea, maxArea);
 
             if (recentTrade != null && recentTrade.getTrade() != null) {
                 avgSaleLong = recentTrade.getTrade(); // 만원 단위 그대로
@@ -531,39 +535,41 @@ public class PriceSearchService {
     }
 
     // --- P-006: 지역 시세 변동 추이 (그래프 단독 기능 900% 최적화 적용) ---
-    public io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceTrendResponse getRegionalTrend(String sigungu, String dong, String startMonth, String endMonth) {
-        
+    public io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceTrendResponse getRegionalTrend(String sigungu, String dong,
+            String startMonth, String endMonth) {
+
         java.util.List<io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceTrendResponse.TrendItem> trends = new java.util.ArrayList<>();
-        
+
         if (sigungu != null && !sigungu.isEmpty()) {
             // 단 1번의 쿼리로 9가지 평균가 데이터를 기간에 맞춰 모두 가져옴
-            java.util.List<Object[]> rawData = houseRepo.findComprehensiveMonthlyTrendGraphData(sigungu, dong, startMonth, endMonth);
-            
+            java.util.List<Object[]> rawData = houseRepo.findComprehensiveMonthlyTrendGraphData(sigungu, dong,
+                    startMonth, endMonth);
+
             if (rawData != null) {
                 for (Object[] row : rawData) {
                     String month = String.valueOf(row[0]);
-                    
-                    io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceTrendResponse.TrendItem item = 
-                        io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceTrendResponse.TrendItem.builder()
-                        .period(month)
-                        .build();
-                    
+
+                    io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceTrendResponse.TrendItem item = io.pjj.ziphyeonjeon.PriceSearch.dto.response.PriceTrendResponse.TrendItem
+                            .builder()
+                            .period(month)
+                            .build();
+
                     // row[1] ~ row[12] 순서에 맞게 세팅 (반올림 처리)
-                    item.setAptSale(formatVal((Double)row[1]));
-                    item.setAptJeonse(formatVal((Double)row[2]));
-                    item.setAptWolseDeposit(formatVal((Double)row[3]));
-                    item.setAptWolseRent(formatVal((Double)row[4]));
-                    
-                    item.setVillaSale(formatVal((Double)row[5]));
-                    item.setVillaJeonse(formatVal((Double)row[6]));
-                    item.setVillaWolseDeposit(formatVal((Double)row[7]));
-                    item.setVillaWolseRent(formatVal((Double)row[8]));
-                    
-                    item.setOfficetelSale(formatVal((Double)row[9]));
-                    item.setOfficetelJeonse(formatVal((Double)row[10]));
-                    item.setOfficetelWolseDeposit(formatVal((Double)row[11]));
-                    item.setOfficetelWolseRent(formatVal((Double)row[12]));
-                    
+                    item.setAptSale(formatVal((Double) row[1]));
+                    item.setAptJeonse(formatVal((Double) row[2]));
+                    item.setAptWolseDeposit(formatVal((Double) row[3]));
+                    item.setAptWolseRent(formatVal((Double) row[4]));
+
+                    item.setVillaSale(formatVal((Double) row[5]));
+                    item.setVillaJeonse(formatVal((Double) row[6]));
+                    item.setVillaWolseDeposit(formatVal((Double) row[7]));
+                    item.setVillaWolseRent(formatVal((Double) row[8]));
+
+                    item.setOfficetelSale(formatVal((Double) row[9]));
+                    item.setOfficetelJeonse(formatVal((Double) row[10]));
+                    item.setOfficetelWolseDeposit(formatVal((Double) row[11]));
+                    item.setOfficetelWolseRent(formatVal((Double) row[12]));
+
                     trends.add(item);
                 }
             }
@@ -576,7 +582,8 @@ public class PriceSearchService {
     }
 
     private Double formatVal(Double val) {
-        if (val == null) return null;
+        if (val == null)
+            return null;
         return Math.round(val * 10.0) / 10.0;
     }
 
@@ -611,7 +618,7 @@ public class PriceSearchService {
                 Double price = (Double) row[1];
                 Double deposit = (Double) row[2];
                 Double rent = (Double) row[3];
-                
+
                 trendList.add(io.pjj.ziphyeonjeon.PriceSearch.dto.response.HouseSearchResponse.TrendData.builder()
                         .month(month)
                         .avgPrice(price != null ? Math.round(price * 10.0) / 10.0 : null)
@@ -847,6 +854,95 @@ public class PriceSearchService {
                                 .adjustments(adjustments)
                                 .algorithm_version("AI Comparative Algo v1.0")
                                 .build())
+                .build();
+    }
+
+    // --- P-009: 매물 단지 목록 (Property Directory) 및 상호작용 연동 ---
+    public org.springframework.data.domain.Page<io.pjj.ziphyeonjeon.PriceSearch.dto.response.PropertyDirectoryResponse> getPropertyDirectory(
+            io.pjj.ziphyeonjeon.PriceSearch.dto.request.PropertyDirectoryRequest request) {
+
+        String sigungu = request.getSigungu() != null ? request.getSigungu() : "";
+        String dong = request.getDong();
+        String propertyType = request.getPropertyType();
+
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
+                request.getPage(), request.getSize());
+
+        org.springframework.data.domain.Page<Object[]> pageResult = houseRepo.findPropertyDirectory(
+                sigungu, dong, propertyType, pageable);
+
+        return pageResult.map(row -> {
+            Long repHouseId = (Long) row[0];
+            String name = (String) row[1];
+            String roadname = (String) row[2];
+            Long totalTxs = (Long) row[3];
+            String propType = (String) row[4];
+
+            return io.pjj.ziphyeonjeon.PriceSearch.dto.response.PropertyDirectoryResponse.builder()
+                    .representativeHouseId(repHouseId)
+                    .complexName(name)
+                    .roadAddress(roadname)
+                    .totalTransactions(totalTxs)
+                    .propertyType(propType)
+                    .build();
+        });
+    }
+
+    // --- P-010: 매물 배틀 보드 (All-in-One Property Profile API) ---
+    public io.pjj.ziphyeonjeon.PriceSearch.dto.response.PropertyProfileResponse getPropertyProfile(Long houseId) {
+        // 1. 매물 기본 정보 조회
+        House house = houseRepo.findById(houseId)
+                .orElseThrow(() -> new RuntimeException("House not found for id: " + houseId));
+
+        Long tradePrice = house.getTrade() != null ? house.getTrade() : 0L;
+        Long pyeongPrice = null;
+        if (tradePrice > 0 && house.getArea() != null && house.getArea().doubleValue() > 0) {
+            pyeongPrice = Math.round((tradePrice / house.getArea().doubleValue()) * 3.3);
+        }
+
+        // 2. 전세 안전성 산출 (calculateJeonseRatio 활용)
+        io.pjj.ziphyeonjeon.PriceSearch.dto.request.JeonseRatioRequest jeonseReq = new io.pjj.ziphyeonjeon.PriceSearch.dto.request.JeonseRatioRequest();
+        jeonseReq.setSigungu(house.getSigungu());
+        jeonseReq.setDong(house.getEmd());
+        jeonseReq.setAddress(house.getSigungu() + " " + house.getEmd() + " " + house.getRoadname());
+        jeonseReq.setExclusiveArea(house.getArea());
+        jeonseReq.setJeonse_amount(0L); // 배틀보드에서는 내 보증금이 없으므로 0으로 세팅 (평균만 활용)
+        jeonseReq.setPropertyType(house.getPropertyType());
+
+        io.pjj.ziphyeonjeon.PriceSearch.dto.response.JeonseRatioResponse jeonseRes = calculateJeonseRatio(jeonseReq);
+
+        // 3. 미래 가치 (AI Prediction) - 저장된 최신 분석 결과 스캔
+        java.util.List<io.pjj.ziphyeonjeon.ai.entity.Analysis> analyses = analysisRepo.findBySigunguAndPropertyTypeAndDealTypeOrderByCreatedAtDesc(
+                house.getSigungu(), house.getPropertyType(), "매매");
+
+        Long aiPredictedPrice = null;
+        Integer aiTargetMonth = null;
+        Long aiPriceDiff = null;
+
+        if (!analyses.isEmpty()) {
+            io.pjj.ziphyeonjeon.ai.entity.Analysis latest = analyses.get(0);
+            if (latest.getPredictedPrice() != null) {
+                aiPredictedPrice = latest.getPredictedPrice().longValue();
+                aiTargetMonth = latest.getPredictTargetMonth();
+                aiPriceDiff = aiPredictedPrice - tradePrice;
+            }
+        }
+
+        // 4. 결과 조립
+        return io.pjj.ziphyeonjeon.PriceSearch.dto.response.PropertyProfileResponse.builder()
+                .houseId(house.getHouseId())
+                .complexName(house.getName())
+                .roadAddress(house.getRoadname())
+                .propertyType(house.getPropertyType())
+                .area(house.getArea())
+                .latestContractYm(house.getContractYm())
+                .latestTradePrice(tradePrice)
+                .pyeongPrice(pyeongPrice)
+                .jeonseRatio(jeonseRes.getMarketJeonseRatio())
+                .riskLevel(jeonseRes.getRiskLevel())
+                .aiPredictedPrice(aiPredictedPrice)
+                .aiPredictTargetMonth(aiTargetMonth)
+                .aiPriceDiff(aiPriceDiff)
                 .build();
     }
 }

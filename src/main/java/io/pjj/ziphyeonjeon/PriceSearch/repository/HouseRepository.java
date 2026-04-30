@@ -125,4 +125,19 @@ public interface HouseRepository extends JpaRepository<House, Long> {
             @Param("dong") String dong,
             @Param("startMonth") String startMonth,
             @Param("endMonth") String endMonth);
+
+    // [NEW] 매물 단지 목록(Property Directory) 그룹화 페이징 조회
+    // MAX(h.houseId)를 통해 가장 최근에 INSERT된(혹은 가장 ID가 큰) 거래를 대표 ID로 추출
+    @Query("SELECT MAX(h.houseId), h.name, h.roadname, COUNT(h.houseId), h.propertyType " +
+           "FROM House h " +
+           "WHERE h.sigungu LIKE %:sigungu% " +
+           "AND (:dong IS NULL OR :dong = '' OR h.emd LIKE %:dong% OR h.sigungu LIKE %:dong%) " +
+           "AND (:propertyType IS NULL OR :propertyType = '' OR h.propertyType = :propertyType) " +
+           "GROUP BY h.sigungu, h.emd, h.name, h.roadname, h.propertyType " +
+           "ORDER BY MAX(h.contractYm) DESC")
+    Page<Object[]> findPropertyDirectory(
+            @Param("sigungu") String sigungu,
+            @Param("dong") String dong,
+            @Param("propertyType") String propertyType,
+            Pageable pageable);
 }
