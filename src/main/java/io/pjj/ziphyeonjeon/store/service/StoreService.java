@@ -34,8 +34,8 @@ public class StoreService {
                 isDuplicate = storeRepository.existsBySigunguAndEmdAndJibunAndFloor(
                         dto.sigungu(), dto.emd(), dto.jibun(), dto.floor());
             }
-            // 층이 없으면 조건 없이 새로운 데이터로 저장 (isDuplicate = false 유지)
 
+            // 층이 없으면 조건 없이 새로운 데이터로 저장 (isDuplicate = false 유지)
             if (!isDuplicate) {
                 Store store = new Store(
                         dto.sggCd(), dto.sigungu(), dto.emd(), dto.type(),

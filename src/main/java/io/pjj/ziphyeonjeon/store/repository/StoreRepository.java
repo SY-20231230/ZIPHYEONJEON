@@ -14,3 +14,4 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
     List<Store> findBySggCd(String sggCd);
     List<Store> findBySggCdAndDealYearAndDealMonth(String sggCd, String dealYear, String dealMonth);
 }
+ 
