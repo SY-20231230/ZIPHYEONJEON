@@ -368,24 +368,27 @@ public class HouseDataMigrationService {
 
         if (rawSigungu != null && !rawSigungu.isEmpty()) {
             String[] tokens = rawSigungu.split(" ");
-            if (tokens.length > 0) sido = tokens[0];
-            if (tokens.length > 1) {
-                // To keep full sigungu like "강남구" instead of splitting completely
-                sigungu = rawSigungu.replace(sido, "").trim(); 
-                // Wait, Sigungu shouldn't include EMD if it's already there. 
-                // Or maybe the MOLIT data has '서울특별시 강남구' in Sigungu.
-                // Let's assume sigungu field has "서울특별시 강남구"
-                if (tokens.length >= 2) {
-                    sigungu = tokens[1];
-                    // Example: "경기도 성남시 분당구"
-                    if (tokens.length >= 3) {
-                        if (tokens[1].endsWith("시") && tokens[2].endsWith("구")) {
-                            sigungu = tokens[1] + " " + tokens[2];
+            if (tokens.length > 0) {
+                sido = tokens[0];
+                sigungu = tokens[0];
+            }
+            if (tokens.length >= 2) {
+                sigungu = tokens[0] + " " + tokens[1];
+                
+                if (tokens.length >= 3) {
+                    // 예: "경기도 성남시 분당구 정자동"
+                    if (tokens[1].endsWith("시") && tokens[2].endsWith("구")) {
+                        sigungu = tokens[0] + " " + tokens[1] + " " + tokens[2];
+                        if (tokens.length >= 4 && (emd == null || emd.isEmpty())) {
+                            emd = tokens[3];
+                        }
+                    } else {
+                        // 예: "서울특별시 은평구 진관동"
+                        if (emd == null || emd.isEmpty()) {
+                            emd = tokens[2];
                         }
                     }
                 }
-            } else {
-                sigungu = rawSigungu;
             }
         }
         return new String[] {sido, sigungu, emd};
