@@ -1,43 +1,86 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+/**
+ * [Main Application Entry & Routing]
+ * 담당: 전역 상태(Auth) 관리 및 페이지 라우팅 구성
+ * 업데이트: 2026. 04. 30 (통합 API 경로 반영 완료)
+ * 특징: 보안 라우팅(ProtectedRoute) 적용, 시스템 진입점 제어
+ */
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom'; 
+import { AuthProvider } from './context/AuthContext'; // 인증 전역 상태 관리
+import Navbar from './context/layout/Navbar'; // 상단 네비게이션
 
-import Ziphyeonjeon from "./Ziphyeonjeon"
-import Login from "./common/Login";
-import Registration from "./common/Registration";
-import Chatbot from "./Chatbot/Chatbot";
+// [페이지 컴포넌트 임포트]
+import AuthPage from './pages/AuthPage'; // 로그인/회원가입
+import MainPage from './pages/MainPage'; // 메인 대시보드
+import CommercialSearchPage from './pages/CommercialSearchPage'; // 상가 검색
+import CustomerServicePage from './pages/CustomerServicePage'; // AI 챗봇 및 고객센터
+import MyPage from './pages/MyPage'; // 마이페이지 (AI 분석 이력 포함)
 
-import RiskAnalysis from "./RiskAnalysis/RiskAnalysis";
-import RiskReport from "./RiskAnalysis/RiskReport";
-import Loan from "./LoanRecommendation/Loan";
-import LoanList from "./LoanRecommendation/LoanList";
-import LoanCompare from "./LoanRecommendation/LoanCompare";
-import LoanDetail from "./LoanRecommendation/LoanDetail";
-import PriceSearch from "./PriceSearch/PriceSearch";
+// [AI 분석 섹션]
+import ResidentialPredictPage from './pages/ai/ResidentialPredictPage'; // 주택 가격 예측
+import CommercialPredictPage from './pages/ai/CommercialPredictPage'; // 상가 임대료 예측
 
-// router 설정 페이지입니다. 라우터 연결만!!
+// [실거래가 및 위험 분석 섹션] - 04.30 지침 반영
+import RealPriceCalculationPage from './pages/price/RealPriceCalculationPage'; // 실거래가 정밀분석
+import JeonseRiskAnalysisPage from './pages/price/JeonseRiskAnalysisPage'; // 전세 위험도 분석
+
+// [보안 속성]
+import ProtectedRoute from './components/ProtectedRoute'; // 로그인 여부 확인 컴포넌트
 
 function App() {
     return (
-        <BrowserRouter>
-            <Routes>
-                <Route path="/" element={<Ziphyeonjeon />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/registration" element={<Registration />} />
+        <AuthProvider>
+            <div className="app-container font-sans antialiased bg-[#F8FAFC] min-h-screen">
+                {/* 전역 상단 바 */}
+                <Navbar />
+                
+                {/* 메인 콘텐츠 영역: Navbar 높이(h-20)를 고려하여 pt-20 적용 */}
+                <main className="pt-20">
+                    <Routes>
+                        {/* 1. 공개 경로: 인증 없이 접근 가능 */}
+                        <Route path="/" element={<AuthPage />} />
+                        
+                        {/* 2. 보호된 경로: ProtectedRoute를 통한 세션 체크 */}
+                        <Route path="/main" element={
+                            <ProtectedRoute><MainPage /></ProtectedRoute>
+                        } />
+                        
+                        {/* 🏠 주거 섹션: 04.30 업데이트에 따른 정밀 분석 및 위험 진단 경로 */}
+                        <Route path="/price/calc" element={
+                            <ProtectedRoute><RealPriceCalculationPage /></ProtectedRoute>
+                        } />
+                        <Route path="/price/risk" element={
+                            <ProtectedRoute><JeonseRiskAnalysisPage /></ProtectedRoute>
+                        } />
+                        
+                        {/* 🤖 AI 분석 섹션: 수동 입력 및 마스터 키 기반 분석[cite: 7, 10] */}
+                        <Route path="/ai/residential" element={
+                            <ProtectedRoute><ResidentialPredictPage /></ProtectedRoute>
+                        } />
+                        <Route path="/ai/commercial" element={
+                            <ProtectedRoute><CommercialPredictPage /></ProtectedRoute>
+                        } />
+                        
+                        {/* 🏢 상가 섹션: 유동인구 및 지역 업황 분석 포함 */}
+                        <Route path="/search/commercial" element={
+                            <ProtectedRoute><CommercialSearchPage /></ProtectedRoute>
+                        } />
+                        
+                        {/* 🛠 서비스 및 개인화 영역 */}
+                        <Route path="/service" element={
+                            <ProtectedRoute><CustomerServicePage /></ProtectedRoute>
+                        } />
+                        <Route path="/mypage" element={
+                            <ProtectedRoute><MyPage /></ProtectedRoute>
+                        } />
 
-                {/* Risk Analysis */}
-                <Route path="/risk/analysis" element={<RiskAnalysis />} />
-                <Route path="/risk/report" element={<RiskReport />} />
-
-                {/* Loan Recommendation */}
-                <Route path="/loan" element={<Loan />} />
-                <Route path="/loan/list" element={<LoanList />} />
-                <Route path="/loan/compare" element={<LoanCompare />} />
-                <Route path="/loan/detail/:snq" element={<LoanDetail />} />
-
-                <Route path="/price-search" element={<PriceSearch />} />
-
-            </Routes>
-            <Chatbot />
-        </BrowserRouter>
+                        {/* 3. 예외 처리: 존재하지 않는 경로는 모두 루트로 리다이렉트 */}
+                        <Route path="/search" element={<Navigate to="/price/calc" replace />} />
+                        <Route path="*" element={<Navigate to="/" replace />} />
+                    </Routes>
+                </main>
+            </div>
+        </AuthProvider>
     );
 }
 
