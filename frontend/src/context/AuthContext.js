@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }) => {
     const signup = useCallback(async (formData) => {
         try {
             // 백엔드의 /api/auth/signup 엔티티와 통신
-            const response = await apiClient.post('/api/auth/signup', formData);
+            const response = await apiClient.post('http://localhost:8080/api/auth/signup', formData);
             return { success: true, data: response.data };
         } catch (error) {
             console.error("[Auth] Signup Error:", error);
@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }) => {
 
     const login = useCallback(async (email, password) => {
         try {
-            const response = await apiClient.post('/api/auth/login', { email, password });
+            const response = await apiClient.post('http://localhost:8080/api/auth/login', { email, password });
             const { accessToken } = response.data;
             
             sessionStorage.setItem('accessToken', accessToken);

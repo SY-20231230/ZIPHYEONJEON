@@ -44,7 +44,7 @@ public class AuthService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         log.info("[Security] 유저 정보 조회: {}", email);
-        
+
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("해당 이메일의 유저를 찾을 수 없습니다: " + email));
 
@@ -72,9 +72,9 @@ public class AuthService implements UserDetailsService {
                 .password(passwordEncoder.encode(dto.getPassword()))
                 .userName(dto.getUserName())
                 .userType("ROLE_USER")
-                .creditScore(dto.getCreditScore()) 
-                .familyType(dto.getFamilyType())   
-                .incomeLevel(dto.getIncomeLevel()) 
+                .creditScore(dto.getCreditScore())
+                .familyType(dto.getFamilyType())
+                .incomeLevel(dto.getIncomeLevel())
                 .build();
 
         userRepository.save(user);
@@ -100,18 +100,17 @@ public class AuthService implements UserDetailsService {
 
         // Redis에 Refresh Token 저장 (RTR)
         redisTemplate.opsForValue().set(
-            "RT:" + user.getEmail(),
-            refreshToken,
-            appProperties.getJwt().getRefreshTokenValidity(),
-            TimeUnit.MILLISECONDS
-        );
+                "RT:" + user.getEmail(),
+                refreshToken,
+                appProperties.getJwt().getRefreshTokenValidity(),
+                TimeUnit.MILLISECONDS);
 
         log.info("[Login] 로그인 성공: {}", user.getEmail());
 
         Map<String, Object> result = new HashMap<>();
         result.put("accessToken", accessToken);
         result.put("refreshToken", refreshToken);
-        
+
         return result;
     }
 
@@ -136,11 +135,10 @@ public class AuthService implements UserDetailsService {
         String newRefreshToken = jwtProvider.createRefreshToken(email);
 
         redisTemplate.opsForValue().set(
-            "RT:" + email,
-            newRefreshToken,
-            appProperties.getJwt().getRefreshTokenValidity(),
-            TimeUnit.MILLISECONDS
-        );
+                "RT:" + email,
+                newRefreshToken,
+                appProperties.getJwt().getRefreshTokenValidity(),
+                TimeUnit.MILLISECONDS);
 
         Map<String, String> tokens = new HashMap<>();
         tokens.put("accessToken", newAccessToken);
@@ -157,6 +155,7 @@ public class AuthService implements UserDetailsService {
         redisTemplate.delete("RT:" + email);
         log.info("[Logout] 로그아웃 완료: {}", email);
     }
+
     @Transactional(readOnly = true)
     public UserResponseDto getUserProfile(String email) {
         // 1. DB에서 이메일로 유저 엔티티를 찾습니다[cite: 2].
@@ -171,7 +170,7 @@ public class AuthService implements UserDetailsService {
                 .userName(user.getUserName()) // 👈 마이페이지 '홍길동' 출력의 핵심[cite: 3]
                 .userType(user.getUserType())
                 .creditScore(user.getCreditScore()) // 👈 신용점수 연동[cite: 3]
-                .familyType(user.getFamilyType())   // 👈 가구형태 연동[cite: 3]
+                .familyType(user.getFamilyType()) // 👈 가구형태 연동[cite: 3]
                 .incomeLevel(user.getIncomeLevel()) // 👈 소득수준 연동[cite: 3]
                 .lastLoginAt(user.getLastLoginAt())
                 .createdTime(user.getCreatedTime())

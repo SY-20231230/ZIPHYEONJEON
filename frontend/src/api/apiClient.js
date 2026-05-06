@@ -5,7 +5,7 @@ import axios from 'axios';
  * 수정일: 2026. 05. 04
  * 내용: 단일 포트(8080) 통합 및 스마트 라우팅 로직 제거
  */
-const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+const BASE_URL = 'http://localhost:8080';
 
 const apiClient = axios.create({
     baseURL: BASE_URL,

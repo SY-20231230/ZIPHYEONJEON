@@ -96,9 +96,9 @@ const ResidentialPredictPage = () => {
                       "지역 정보 없음";
 
       const autoFillData = {
-        sigungu: d.sigungu || d.SIGUNGU || `${d.SIDO} ${d.SIGUNGU}`.trim(),
+        sigungu: d.sigungu || d.SIGUNGU || (d.roadAddress ? d.roadAddress.split(' ').slice(0, 2).join(' ') : "서울특별시 은평구"),
         propertyType: d.propertyType || d.PROPERTY_TYPE || '아파트',
-        dealType: inputs.dealType, // 현재 유저가 선택한 거래타입 유지
+        dealType: inputs.dealType,
         area: d.area || d.AREA || '',
         floor: d.floor || d.FLOOR_NO || '10',
         builtYear: d.builtYear || d.BUILT_YEAR || '2020',
@@ -147,20 +147,27 @@ const ResidentialPredictPage = () => {
       }
 
       // 루프를 돌며 개별 targetMonth 요청 생성[cite: 5]
-      const requests = months.map(m => 
-        residentialService.predict({
+      const requests = months.map(m => {
+        // 💡 [AI 규격 준수] AI 서버는 sido, mean_building_age 등의 이름을 기다립니다.
+        const sido = validSigungu.split(' ')[0] || "서울특별시";
+        const currentYear = new Date().getFullYear();
+        const buildingAge = currentYear - (parseInt(data.builtYear) || 2020);
+
+        return residentialService.predict({
           propertyType: data.propertyType,
           dealType: data.dealType,
           sigungu: validSigungu,
-          targetMonth: m, // 🚨 고정: CamelCase 규격 준수[cite: 1, 5]
-          houseId: isAuto ? data.houseId : null, // 수동 시 null[cite: 5]
+          targetMonth: m,
           features: [{
-            area: parseFloat(data.area),
-            builtYear: parseInt(data.builtYear),
-            floor: parseInt(data.floor) || 10
+            month: new Date().getMonth() + 1,
+            sido: sido,
+            property_type: data.propertyType,
+            mean_building_age: buildingAge,
+            mean_floor: parseInt(data.floor) || 10,
+            mean_area: parseFloat(data.area) || 84.0
           }]
-        })
-      );
+        });
+      });
 
       const responses = await Promise.all(requests);
       
