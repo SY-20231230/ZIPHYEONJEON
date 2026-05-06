@@ -25,6 +25,9 @@ import javax.crypto.SecretKey;
 public class JwtMockUtil {
 
     private final UserRepository userRepository; // DB 조회를 위한 리포지토리 주입
+    
+    // 💡 [성능 최적화] 유저 이메일별 ID 캐시 (DB 부하 감소 및 응답 속도 향상)
+    private static final java.util.Map<String, Long> userIdCache = new java.util.concurrent.ConcurrentHashMap<>();
 
     @Value("${jwt.secret:vmfhaltjskstskswhadsregnalroqkfwkdbalroqkfwkdbalroqkfwkdbal}")
     private String jwtSecret;
@@ -62,16 +65,23 @@ public class JwtMockUtil {
             // Case A: Subject가 이미 숫자(ID)인 경우
             return Long.parseLong(subject);
         } catch (NumberFormatException e) {
-            // Case B: Subject가 이메일 형태인 경우 (현재 로그 발생 상황)
-            log.info("[Auth] 이메일 기반 User ID 조회 수행: {}", subject);
+            // Case B: Subject가 이메일 형태인 경우 -> 캐시 먼저 확인
+            if (userIdCache.containsKey(subject)) {
+                return userIdCache.get(subject);
+            }
+
+            log.info("[Auth] 이메일 기반 User ID DB 조회 수행 (Cache Miss): {}", subject);
             
-            return userRepository.findByEmail(subject)
-                    .map(User::getUserId) // DB에서 실제 Long ID 추출
+            Long userId = userRepository.findByEmail(subject)
+                    .map(User::getUserId)
                     .orElseGet(() -> {
-                        // DB에도 없는 경우에만 방어적으로 1L 반환 (보안상 추후 Exception 처리 권장)
-                        log.warn("⚠️ 미등록 사용자 토큰 감지: {}. 임시 ID 1L 할당.", subject);
-                        return 1L;
+                        log.warn("⚠️ 미등록 사용자 토큰 감지: {}. 보안 확인 권장.", subject);
+                        return 1L; // 방어적 기본값 (Guest)
                     });
+            
+            // 캐시에 저장
+            userIdCache.put(subject, userId);
+            return userId;
         }
     }
 }

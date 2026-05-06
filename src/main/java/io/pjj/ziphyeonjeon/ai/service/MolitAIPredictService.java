@@ -38,9 +38,29 @@ public class MolitAIPredictService {
     public Analysis predictAndSave(Long userId, Long houseId, String propertyType, String dealType, String sigungu, String targetMonth, List<Map<String, Object>> features) {
         
         // 1. 하이브리드 캐싱: 최근 1개월 이내 동일 지역/유형 분석 결과가 있는지 스캔
+        // 1. 하이브리드 캐싱: 최근 1개월 이내 동일 지역/유형/면적 분석 결과가 있는지 스캔
+        java.time.LocalDateTime oneMonthAgo = java.time.LocalDateTime.now().minusMonths(1);
         int month = Integer.parseInt(targetMonth.replace("h", "").replace("m", ""));
         
-        // [Cache Removed] 모든 요청은 실시간으로 AI 서버를 호출하도록 변경합니다.
+        // 💡 [최적화] 시군구, 유형, 거래방식, 대상월이 일치하는 최신 기록 조회
+        java.util.Optional<Analysis> cachedResult = analysisRepository.findFirstBySigunguAndPropertyTypeAndDealTypeAndPredictTargetMonthAndCreatedAtAfterOrderByCreatedAtDesc(
+                sigungu, propertyType, dealType, month, oneMonthAgo);
+ 
+        if (cachedResult.isPresent()) {
+            log.info("[Hybrid Cache Hit] Reusing valid prediction for sigungu: {}, month: {}", sigungu, month);
+            Analysis newRecord = new Analysis();
+            newRecord.setUserId(userId);
+            newRecord.setHouseId(houseId);
+            newRecord.setPropertyType(propertyType);
+            newRecord.setDealType(dealType);
+            newRecord.setSigungu(sigungu);
+            newRecord.setPredictTargetMonth(month);
+            newRecord.setPredictedPrice(cachedResult.get().getPredictedPrice());
+            newRecord.setTrendPercentage(cachedResult.get().getTrendPercentage());
+            return analysisRepository.save(newRecord);
+        }
+
+        log.info("[Hybrid Cache Miss] Requesting fresh AI Prediction for month: {}", month);
 
 
         // [Cache Miss] 최근 1개월 내 기록이 없으므로 파이썬 서버 실제 호출
@@ -70,10 +90,10 @@ public class MolitAIPredictService {
                     }
                 } catch (Exception ignored) {}
 
-                // 예측 총액 = 평당 가격 * (전체 면적 / 3.3)
-                Double predictedTotalVal = predictedVal * (area / 3.3);
+                // 예측 총액 = 평당 가격 * (전체 면적 / 3.3) -> 만원 단위 반올림
+                Double predictedTotalVal = Math.round(predictedVal * (area / 3.3) * 1.0) / 1.0;
                 
-                log.info("[AI Debug] AI 반환값(평당가): {}, 입력면적: {}, 계산된 총액: {}", predictedVal, area, predictedTotalVal);
+                log.info("[AI Debug] AI 반환값(평당가): {}, 입력면적: {}, 계산된 총액(반올림): {}", predictedVal, area, predictedTotalVal);
                 
                 // [NEW] 추세율(Trend Percentage) 계산을 위해 현재 시군구 평균가 조회
                 Double currentAvgPrice = houseRepository.findAveragePriceBySigunguAndPropertyType(sigungu, propertyType, dealType);
@@ -91,7 +111,7 @@ public class MolitAIPredictService {
                 analysis.setDealType(dealType);
                 analysis.setSigungu(sigungu);
                 analysis.setPredictTargetMonth(month);
-                analysis.setPredictedPrice(BigDecimal.valueOf(predictedTotalVal));
+                analysis.setPredictedPrice(BigDecimal.valueOf(predictedTotalVal).setScale(0, java.math.RoundingMode.HALF_UP));
                 analysis.setTrendPercentage(trendPercentage);
                 
                 return analysisRepository.save(analysis);
