@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
                 const decoded = jwtDecode(token);
                 setUser({
                     email: decoded.sub,
-                    role: decoded.auth, 
+                    role: decoded.auth,
                     ...decoded
                 });
                 setIsAuthenticated(true);
@@ -50,29 +50,29 @@ export const AuthProvider = ({ children }) => {
     const signup = useCallback(async (formData) => {
         try {
             // 백엔드의 /api/auth/signup 엔티티와 통신
-            const response = await apiClient.post('http://localhost:8080/api/auth/signup', formData);
+            const response = await apiClient.post('/api/auth/signup', formData);
             return { success: true, data: response.data };
         } catch (error) {
             console.error("[Auth] Signup Error:", error);
-            return { 
-                success: false, 
-                message: error.response?.data?.message || "회원가입 신청에 실패했습니다." 
+            return {
+                success: false,
+                message: error.response?.data?.message || "회원가입 신청에 실패했습니다."
             };
         }
     }, []);
 
     const login = useCallback(async (email, password) => {
         try {
-            const response = await apiClient.post('http://localhost:8080/api/auth/login', { email, password });
+            const response = await apiClient.post('/api/auth/login', { email, password });
             const { accessToken } = response.data;
-            
+
             sessionStorage.setItem('accessToken', accessToken);
             updateAuthState(accessToken);
             return { success: true };
         } catch (error) {
-            return { 
-                success: false, 
-                message: error.response?.data?.message || "보안 인증에 실패했습니다." 
+            return {
+                success: false,
+                message: error.response?.data?.message || "보안 인증에 실패했습니다."
             };
         }
     }, [updateAuthState]);
@@ -81,7 +81,7 @@ export const AuthProvider = ({ children }) => {
         sessionStorage.removeItem('accessToken');
         setUser(null);
         setIsAuthenticated(false);
-        window.location.href = '/'; 
+        window.location.href = '/';
     }, []);
 
     // 💡 6. 성능 최적화: signup 함수를 value에 반드시 추가해야 합니다!
