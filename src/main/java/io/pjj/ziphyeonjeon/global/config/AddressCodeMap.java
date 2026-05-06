@@ -45,4 +45,26 @@ public class AddressCodeMap {
     public String getCode(String fullAddress) {
         return codeMap.get(fullAddress);
     }
+
+    public java.util.Set<String> getAllSigunguCodes() {
+        java.util.Set<String> sigunguCodes = new java.util.HashSet<>();
+        for (String code : codeMap.values()) {
+            if (code != null && code.length() >= 5) {
+                sigunguCodes.add(code.substring(0, 5));
+            }
+        }
+        return sigunguCodes;
+    }
+
+    public String getLawdCdBySigungu(String sigungu) {
+        for (Map.Entry<String, String> entry : codeMap.entrySet()) {
+            if (entry.getKey().contains(sigungu)) {
+                String code = entry.getValue();
+                if (code != null && code.length() >= 5) {
+                    return code.substring(0, 5);
+                }
+            }
+        }
+        return null;
+    }
 }

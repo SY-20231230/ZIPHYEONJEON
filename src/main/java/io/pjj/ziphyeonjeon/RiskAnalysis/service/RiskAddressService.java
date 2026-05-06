@@ -44,6 +44,14 @@ public class RiskAddressService {
         return new String[]{code.substring(0, 5), code.substring(5)};
     }
 
+    public java.util.Set<String> getAllSigunguCodes() {
+        return addressCodeMap.getAllSigunguCodes();
+    }
+
+    public String getLawdCdBySigungu(String sigungu) {
+        return addressCodeMap.getLawdCdBySigungu(sigungu);
+    }
+
     // 시, 군, 구 분리
     private String splitDistrict(String[] parts) {
         if (parts.length >= 2) return parts[0] + " " + parts[1];

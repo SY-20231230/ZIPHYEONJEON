@@ -14,3 +14,14 @@
 
 #### 집현전v1 ERD
 <img width="2800" height="1152" alt="ERD_ZIPHYEONJEONv1" src="https://github.com/user-attachments/assets/c60dbd65-3641-4a13-a4ec-9a12c9aff98b" />
+
+
+#### 역할 및 포지션
+#### 윤성용
+Product Owner (PO) / AI Engineer / Backend Developer
+
+#### 정지훈
+Project Manager (PM) / Backend & AI Engineer
+
+#### 김동규
+Frontend Developer / Chatbot AI Engineer

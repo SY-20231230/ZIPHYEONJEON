@@ -59,7 +59,7 @@ def load_models_and_configs():
 
 # Pydantic Schema for Input
 class PredictionRequest(BaseModel):
-    target_month: str # "h1m", "h3m", "h6m"
+    targetMonth: str # "h1m", "h3m", "h6m"
     features: List[Dict[str, Any]] # The raw properties data corresponding to feature_cols
 
 @app.post("/predict/{deal_type}")
@@ -67,7 +67,7 @@ def predict(deal_type: str, request: PredictionRequest):
     if deal_type not in ["sale", "rent"]:
         raise HTTPException(status_code=400, detail="deal_type must be 'sale' or 'rent'")
     
-    target = request.target_month
+    target = request.targetMonth
     if target not in models[deal_type]:
         raise HTTPException(status_code=404, detail=f"Model for target '{target}' not found in '{deal_type}'. Available: {list(models[deal_type].keys())}")
 
