@@ -62,10 +62,10 @@ const Navbar = () => {
             title: "마이페이지",
             path: "/mypage",
             subMenus: [
-                { name: "최근 본 매물", path: "/mypage" },
-                { name: "관심 매물 관리", path: "/mypage" },
+                // { name: "최근 본 매물", path: "/RecentViewPage" },
+                // { name: "관심 매물 관리", path: "/FavoritePage" },
                 // ANALYSIS 테이블에 저장된 과거 예측 결과 조회[cite: 11]
-                { name: "AI 분석 이력", path: "/mypage" }
+                // { name: "AI 분석 이력", path: "/AIHistoryPagee" }
             ]
         }
     ];
