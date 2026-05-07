@@ -681,35 +681,35 @@ public class PriceSearchService {
 
     // --- P-007: 실거래가 다운로드 (CSV) ---
     public org.springframework.core.io.Resource downloadTradeData(String sidoCode, String sigunguCode, String propertyType, String dealType, String format, String year) {
-        // 1. Code -> Name Mapping (서울 25개 구)
+        // 1. Code -> Name Mapping (서울 25개 구) - DB에는 "강남구" 형식으로 저장됨
         java.util.Map<String, String> codeMap = new java.util.HashMap<>();
-        codeMap.put("11110", "서울특별시 종로구");
-        codeMap.put("11140", "서울특별시 중구");
-        codeMap.put("11170", "서울특별시 용산구");
-        codeMap.put("11200", "서울특별시 성동구");
-        codeMap.put("11215", "서울특별시 광진구");
-        codeMap.put("11230", "서울특별시 동대문구");
-        codeMap.put("11260", "서울특별시 중랑구");
-        codeMap.put("11290", "서울특별시 성북구");
-        codeMap.put("11305", "서울특별시 강북구");
-        codeMap.put("11320", "서울특별시 도봉구");
-        codeMap.put("11350", "서울특별시 노원구");
-        codeMap.put("11380", "서울특별시 은평구");
-        codeMap.put("11410", "서울특별시 서대문구");
-        codeMap.put("11440", "서울특별시 마포구");
-        codeMap.put("11470", "서울특별시 양천구");
-        codeMap.put("11500", "서울특별시 강서구");
-        codeMap.put("11530", "서울특별시 구로구");
-        codeMap.put("11545", "서울특별시 금천구");
-        codeMap.put("11560", "서울특별시 영등포구");
-        codeMap.put("11590", "서울특별시 동작구");
-        codeMap.put("11620", "서울특별시 관악구");
-        codeMap.put("11650", "서울특별시 서초구");
-        codeMap.put("11680", "서울특별시 강남구");
-        codeMap.put("11710", "서울특별시 송파구");
-        codeMap.put("11740", "서울특별시 강동구");
+        codeMap.put("11110", "종로구");
+        codeMap.put("11140", "중구");
+        codeMap.put("11170", "용산구");
+        codeMap.put("11200", "성동구");
+        codeMap.put("11215", "광진구");
+        codeMap.put("11230", "동대문구");
+        codeMap.put("11260", "중랑구");
+        codeMap.put("11290", "성북구");
+        codeMap.put("11305", "강북구");
+        codeMap.put("11320", "도봉구");
+        codeMap.put("11350", "노원구");
+        codeMap.put("11380", "은평구");
+        codeMap.put("11410", "서대문구");
+        codeMap.put("11440", "마포구");
+        codeMap.put("11470", "양천구");
+        codeMap.put("11500", "강서구");
+        codeMap.put("11530", "구로구");
+        codeMap.put("11545", "금천구");
+        codeMap.put("11560", "영등포구");
+        codeMap.put("11590", "동작구");
+        codeMap.put("11620", "관악구");
+        codeMap.put("11650", "서초구");
+        codeMap.put("11680", "강남구");
+        codeMap.put("11710", "송파구");
+        codeMap.put("11740", "강동구");
 
-        String sigungu = codeMap.getOrDefault(sigunguCode, "서울특별시 강남구");
+        String sigungu = codeMap.getOrDefault(sigunguCode, "강남구");
 
         // 2. Data Fetch (해당 구의 입력받은 연도 실거래가 전체 데이터 및 필터 적용)
         java.util.List<House> list = houseRepo.findDownloadData(sigungu, year, propertyType, dealType);

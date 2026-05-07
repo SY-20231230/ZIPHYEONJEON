@@ -29,7 +29,7 @@ public class HouseDataMigrationService {
 
     private final HouseRepository houseRepo;
 
-    private static final int PAGE_SIZE = 10000;
+    private static final int PAGE_SIZE = 5000;
 
     // @Transactional 어노테이션 제거: 전체를 하나의 트랜잭션으로 묶으면 메모리가 해제되지 않습니다.
     public void migrateAllDataToHouse() {
@@ -83,10 +83,10 @@ public class HouseDataMigrationService {
                 count++;
             }
             houseRepo.saveAll(batch);
-            log.info("Apt Sale batch {} saved. Total: {}", page, count);
+            log.info("[APT SALE] batch done: {} rows | total: {}", batch.size(), count);
             page++;
         }
-        log.info("Apt Sale Migrated: {}", count);
+        log.info("[APT SALE] migration complete. total: {}", count);
         return count;
     }
 
@@ -129,10 +129,10 @@ public class HouseDataMigrationService {
                 count++;
             }
             houseRepo.saveAll(batch);
-            log.info("Apt Rent batch {} saved. Total: {}", page, count);
+            log.info("[APT RENT] batch done: {} rows | total: {}", batch.size(), count);
             page++;
         }
-        log.info("Apt Rent Migrated: {}", count);
+        log.info("[APT RENT] migration complete. total: {}", count);
         return count;
     }
 
@@ -185,10 +185,10 @@ public class HouseDataMigrationService {
                 count++;
             }
             houseRepo.saveAll(batch);
-            log.info("Villa Sale batch {} saved. Total: {}", page, count);
+            log.info("[VILLA SALE] batch done: {} rows | total: {}", batch.size(), count);
             page++;
         }
-        log.info("Villa Sale Migrated: {}", count);
+        log.info("[VILLA SALE] migration complete. total: {}", count);
         return count;
     }
 
@@ -242,10 +242,10 @@ public class HouseDataMigrationService {
                 count++;
             }
             houseRepo.saveAll(batch);
-            log.info("Villa Rent batch {} saved. Total: {}", page, count);
+            log.info("[VILLA RENT] batch done: {} rows | total: {}", batch.size(), count);
             page++;
         }
-        log.info("Villa Rent Migrated: {}", count);
+        log.info("[VILLA RENT] migration complete. total: {}", count);
         return count;
     }
 
@@ -297,10 +297,10 @@ public class HouseDataMigrationService {
                 count++;
             }
             houseRepo.saveAll(batch);
-            log.info("Officetel Sale batch {} saved. Total: {}", page, count);
+            log.info("[OFFICETEL SALE] batch done: {} rows | total: {}", batch.size(), count);
             page++;
         }
-        log.info("Officetel Sale Migrated: {}", count);
+        log.info("[OFFICETEL SALE] migration complete. total: {}", count);
         return count;
     }
 
@@ -354,10 +354,10 @@ public class HouseDataMigrationService {
                 count++;
             }
             houseRepo.saveAll(batch);
-            log.info("Officetel Rent batch {} saved. Total: {}", page, count);
+            log.info("[OFFICETEL RENT] batch done: {} rows | total: {}", batch.size(), count);
             page++;
         }
-        log.info("Officetel Rent Migrated: {}", count);
+        log.info("[OFFICETEL RENT] migration complete. total: {}", count);
         return count;
     }
 
@@ -370,20 +370,20 @@ public class HouseDataMigrationService {
             String[] tokens = rawSigungu.split(" ");
             if (tokens.length > 0) {
                 sido = tokens[0];
-                sigungu = tokens[0];
+                sigungu = tokens[0]; // fallback: sido만 있을 경우
             }
             if (tokens.length >= 2) {
-                sigungu = tokens[0] + " " + tokens[1];
-                
+                sigungu = tokens[1]; // "사하구", "동작구" 등 구 이름만
+
                 if (tokens.length >= 3) {
-                    // 예: "경기도 성남시 분당구 정자동"
+                    // 예: "경기도 성남시 분당구 정자동" → sigungu = "성남시 분당구"
                     if (tokens[1].endsWith("시") && tokens[2].endsWith("구")) {
-                        sigungu = tokens[0] + " " + tokens[1] + " " + tokens[2];
+                        sigungu = tokens[1] + " " + tokens[2];
                         if (tokens.length >= 4 && (emd == null || emd.isEmpty())) {
                             emd = tokens[3];
                         }
                     } else {
-                        // 예: "서울특별시 은평구 진관동"
+                        // 예: "서울특별시 은평구 진관동" → sigungu = "은평구", emd = "진관동"
                         if (emd == null || emd.isEmpty()) {
                             emd = tokens[2];
                         }
