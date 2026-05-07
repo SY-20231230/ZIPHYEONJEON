@@ -5,6 +5,7 @@ import io.pjj.ziphyeonjeon.interaction.entity.Records;
 import io.pjj.ziphyeonjeon.interaction.service.InteractionService;
 import io.pjj.ziphyeonjeon.auth.entity.User;
 import io.pjj.ziphyeonjeon.auth.repository.UserRepository;
+import io.pjj.ziphyeonjeon.PriceSearch.repository.HouseRepository;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,7 @@ public class InteractionController {
 
     private final InteractionService interactionService;
     private final UserRepository userRepository; // JWT의 email로 userId 조회용
+    private final HouseRepository houseRepository; // houseId를 이용해 매물 이름 조회용
 
     @Data
     public static class LikeRequest {
@@ -108,13 +110,21 @@ public class InteractionController {
         Long userId = getUserId(userDetails);
         if (userId == null) return ResponseEntity.status(401).build();
         
-        // 주의: Records 엔티티는 name 필드가 없으므로, 현재로선 최근 본 매물 이름은 프론트엔드가 houseId로 보완하게 됩니다.
-        // InteractionItemDto를 반환하되 complexName은 null 또는 "최근 본 매물"로 보냅니다.
+        // 주의: Records 엔티티는 name 필드가 없으므로, HouseRepository를 통해 매물 이름을 가져옵니다.
         List<InteractionItemDto> records = interactionService.getMyRecords(userId).stream()
             .map(record -> {
                 InteractionItemDto dto = new InteractionItemDto();
                 dto.setHouseId(record.getHouseId());
-                // Records에는 이름이 없으므로 프론트에서 클릭 시 채워지도록 유도
+                
+                // houseId로 매물 정보를 조회하여 이름 채우기
+                houseRepository.findById(record.getHouseId()).ifPresent(house -> {
+                    String name = house.getName();
+                    if (name == null || name.trim().isEmpty()) {
+                        name = house.getRoadname(); // 빌라 등은 도로명 사용
+                    }
+                    dto.setComplexName(name);
+                });
+                
                 return dto;
             }).collect(Collectors.toList());
             

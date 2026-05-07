@@ -63,7 +63,6 @@ const ResidentialPredictPage = () => {
   const handleSearch = async () => {
     if (!keyword.trim()) return;
     try {
-    try {
       // 주소 파싱 로직 롤백: 띄어쓰기 포함 전체 검색어 사용
       const searchVal = keyword.trim();
 

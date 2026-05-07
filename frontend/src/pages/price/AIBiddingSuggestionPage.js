@@ -4,7 +4,8 @@ import apiClient from '../../api/apiClient';
 const AIBiddingSuggestionPage = () => {
     const [inputs, setInputs] = useState({
         property_type: '아파트',
-        location: '서울특별시 동작구',
+        location: '서울특별시 동작구 상도동',
+        area_m2: '84',
         current_price: '',
         built_year: '',
         floor: ''
@@ -27,8 +28,9 @@ const AIBiddingSuggestionPage = () => {
         setIsLoading(true);
         try {
             const payload = {
-                property_type: inputs.property_type,
-                location: inputs.location,
+                propertyType: inputs.property_type,
+                address: inputs.location,
+                area_m2: parseFloat(inputs.area_m2) || 84.0,
                 market_data: {
                     current_price: parseInt(inputs.current_price, 10),
                     built_year: parseInt(inputs.built_year, 10),
@@ -72,8 +74,13 @@ const AIBiddingSuggestionPage = () => {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-blue-600 uppercase">Location (시/군/구)</label>
-                            <input name="location" value={inputs.location} onChange={handleInputChange} placeholder="예: 서울특별시 강남구" className="w-full bg-slate-50 p-4 rounded-2xl font-bold border-none focus:ring-2 focus:ring-blue-500" />
+                            <label className="text-[10px] font-black text-blue-600 uppercase">Location (주소)</label>
+                            <input name="location" value={inputs.location} onChange={handleInputChange} placeholder="예: 서울특별시 강남구 역삼동" className="w-full bg-slate-50 p-4 rounded-2xl font-bold border-none focus:ring-2 focus:ring-blue-500" />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-blue-600 uppercase">Area (전용면적 ㎡)</label>
+                            <input type="number" name="area_m2" value={inputs.area_m2} onChange={handleInputChange} placeholder="예: 84" className="w-full bg-slate-50 p-4 rounded-2xl font-bold border-none focus:ring-2 focus:ring-blue-500" />
                         </div>
 
                         <div className="space-y-2">

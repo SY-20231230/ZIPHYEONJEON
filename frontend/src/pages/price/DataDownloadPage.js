@@ -5,7 +5,8 @@ const DataDownloadPage = () => {
     const [inputs, setInputs] = useState({
         sido_code: '11',
         sigungu_code: '11590',
-        format: 'csv'
+        format: 'csv',
+        year: '2024'
     });
     const [isDownloading, setIsDownloading] = useState(false);
 
@@ -17,7 +18,7 @@ const DataDownloadPage = () => {
     const handleDownload = async () => {
         setIsDownloading(true);
         try {
-            const url = `/api/price/download?sido_code=${inputs.sido_code}&sigungu_code=${inputs.sigungu_code}&format=${inputs.format}`;
+            const url = `/api/price/download?sido_code=${inputs.sido_code}&sigungu_code=${inputs.sigungu_code}&format=${inputs.format}&year=${inputs.year}`;
             
             // 파일 다운로드를 위해 responseType을 blob으로 설정
             const res = await apiClient.get(url, { responseType: 'blob' });
@@ -67,6 +68,15 @@ const DataDownloadPage = () => {
                         <label className="text-[10px] font-black text-rose-600 uppercase ml-2">시군구 코드 (SIGUNGU CODE)</label>
                         <input name="sigungu_code" value={inputs.sigungu_code} onChange={handleInputChange} placeholder="예: 11590 (동작구)" className="w-full bg-slate-50 p-4 rounded-2xl font-bold border-none focus:ring-2 focus:ring-rose-500" />
                         <p className="text-[9px] text-slate-400 font-bold ml-2">※ 법정동 코드 앞 5자리를 입력하세요.</p>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black text-rose-600 uppercase ml-2">조회 연도 (YEAR)</label>
+                        <select name="year" value={inputs.year} onChange={handleInputChange} className="w-full bg-slate-50 p-4 rounded-2xl font-bold border-none focus:ring-2 focus:ring-rose-500">
+                            <option value="2024">2024년</option>
+                            <option value="2023">2023년</option>
+                            <option value="2022">2022년</option>
+                        </select>
                     </div>
 
                     <div className="space-y-2">
