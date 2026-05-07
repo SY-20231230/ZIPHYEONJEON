@@ -680,7 +680,7 @@ public class PriceSearchService {
     }
 
     // --- P-007: 실거래가 다운로드 (CSV) ---
-    public org.springframework.core.io.Resource downloadTradeData(String sidoCode, String sigunguCode, String format, String year) {
+    public org.springframework.core.io.Resource downloadTradeData(String sidoCode, String sigunguCode, String propertyType, String dealType, String format, String year) {
         // 1. Code -> Name Mapping (서울 25개 구)
         java.util.Map<String, String> codeMap = new java.util.HashMap<>();
         codeMap.put("11110", "서울특별시 종로구");
@@ -711,8 +711,8 @@ public class PriceSearchService {
 
         String sigungu = codeMap.getOrDefault(sigunguCode, "서울특별시 강남구");
 
-        // 2. Data Fetch (해당 구의 입력받은 연도 실거래가 전체 데이터)
-        java.util.List<House> list = houseRepo.findBySigunguContainingAndContractYmStartingWith(sigungu, year);
+        // 2. Data Fetch (해당 구의 입력받은 연도 실거래가 전체 데이터 및 필터 적용)
+        java.util.List<House> list = houseRepo.findDownloadData(sigungu, year, propertyType, dealType);
 
         // 3. Generate CSV (UTF-8 with BOM - 엑셀 한글 깨짐 방지)
         StringBuilder csv = new StringBuilder();
@@ -731,7 +731,7 @@ public class PriceSearchService {
                     .append(entity.getDeposit() != null ? entity.getDeposit() : "").append(",")
                     .append(entity.getRentfee() != null ? entity.getRentfee() : "").append(",")
                     .append(entity.getFloorNo() != null ? entity.getFloorNo() : "").append(",")
-                    .append(entity.getBuiltYear() != null ? entity.getBuiltYear() : "").append("\n");
+                    .append("").append("\n"); // BuiltYear 없음
         }
 
         // BOM(0xEF,0xBB,0xBF) + UTF-8 본문 = 엑셀에서 한글 정상 출력

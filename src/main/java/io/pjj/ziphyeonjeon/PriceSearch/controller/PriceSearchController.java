@@ -87,11 +87,13 @@ public class PriceSearchController {
     public org.springframework.http.ResponseEntity<org.springframework.core.io.Resource> downloadTradeData(
             @RequestParam("sido_code") String sidoCode,
             @RequestParam("sigungu_code") String sigunguCode,
+            @RequestParam(value = "property_type", required = false) String propertyType,
+            @RequestParam(value = "deal_type", required = false) String dealType,
             @RequestParam(value = "format", defaultValue = "csv") String format,
             @RequestParam(value = "year", defaultValue = "2024") String year) {
 
         org.springframework.core.io.Resource resource = priceSearchService.downloadTradeData(sidoCode, sigunguCode,
-                format, year);
+                propertyType, dealType, format, year);
 
         String filename = "trade_data_" + sigunguCode + "." + format;
         return org.springframework.http.ResponseEntity.ok()

@@ -54,7 +54,6 @@ const Navbar = () => {
             path: "/service",
             subMenus: [
                 { name: "AI 챗봇 상담", path: "/service" },
-                { name: "매물 비교 보드", path: "/price/compare" }, // 기존 매물 비교 보드를 진짜 페이지로 연결
                 { name: "실거래가 다운로드 센터", path: "/price/download" } // [NEW] 실거래가 원천 데이터 다운로드
             ]
         },

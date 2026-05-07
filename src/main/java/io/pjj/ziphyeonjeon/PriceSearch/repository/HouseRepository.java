@@ -27,7 +27,18 @@ public interface HouseRepository extends JpaRepository<House, Long> {
     List<House> findBySigunguContainingAndContractYm(String sigungu, String contractYm);
 
     // 시군구와 특정 연도(예: "2024")로 시작하는 계약년월 데이터 모두 조회
-    List<House> findBySigunguContainingAndContractYmStartingWith(String sigungu, String year);
+    @Query("SELECT h FROM House h WHERE h.sigungu LIKE CONCAT('%', :sigungu, '%') AND h.contractYm LIKE CONCAT(:year, '%')")
+    List<House> findBySigunguContainingAndContractYmStartingWith(@Param("sigungu") String sigungu, @Param("year") String year);
+
+    // [NEW] 필터 적용 실거래가 다운로드용 쿼리 (빈 값일 경우 무시)
+    @Query("SELECT h FROM House h WHERE h.sigungu LIKE CONCAT('%', :sigungu, '%') " +
+           "AND h.contractYm LIKE CONCAT(:year, '%') " +
+           "AND (:propertyType IS NULL OR :propertyType = '' OR h.propertyType = :propertyType) " +
+           "AND (:dealType IS NULL OR :dealType = '' OR h.dealType = :dealType)")
+    List<House> findDownloadData(@Param("sigungu") String sigungu, 
+                                 @Param("year") String year, 
+                                 @Param("propertyType") String propertyType, 
+                                 @Param("dealType") String dealType);
 
     // [NEW] 기간 설정, 페이징 기반 통합 실거래가 검색 쿼리 (동 포함, 도로명/단지명 키워드 포함)
     @Query("SELECT h FROM House h " +
