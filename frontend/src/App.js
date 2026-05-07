@@ -24,6 +24,12 @@ import CommercialPredictPage from './pages/ai/CommercialPredictPage'; // 상가 
 import RealPriceCalculationPage from './pages/price/RealPriceCalculationPage'; // 실거래가 정밀분석
 import JeonseRiskAnalysisPage from './pages/price/JeonseRiskAnalysisPage'; // 전세 위험도 분석
 
+// [새로운 가격 및 정보 조회 기능 섹션]
+import PropertyComparePage from './pages/price/PropertyComparePage'; // 다중 매물 비교 보드 (P-004)
+import AIBiddingSuggestionPage from './pages/price/AIBiddingSuggestionPage'; // AI 적정 입찰가 제안 (P-008)
+import OfficialLandPricePage from './pages/price/OfficialLandPricePage'; // 공식 공시지가 조회 (P-003)
+import DataDownloadPage from './pages/price/DataDownloadPage'; // 데이터 다운로드 센터 (P-007)
+
 // [보안 속성]
 import ProtectedRoute from './components/ProtectedRoute'; // 로그인 여부 확인 컴포넌트
 
@@ -45,12 +51,26 @@ function App() {
                             <ProtectedRoute><MainPage /></ProtectedRoute>
                         } />
                         
-                        {/* 🏠 주거 섹션: 04.30 업데이트에 따른 정밀 분석 및 위험 진단 경로 */}
+                        {/* 현 주거 섹션: 04.30 업데이트에 따른 시세 분석 및 위험 진단 경로 */}
                         <Route path="/price/calc" element={
                             <ProtectedRoute><RealPriceCalculationPage /></ProtectedRoute>
                         } />
                         <Route path="/price/risk" element={
                             <ProtectedRoute><JeonseRiskAnalysisPage /></ProtectedRoute>
+                        } />
+                        
+                        {/* [NEW] 추가된 시세 비교 및 정보 조회 라우트 */}
+                        <Route path="/price/compare" element={
+                            <ProtectedRoute><PropertyComparePage /></ProtectedRoute>
+                        } />
+                        <Route path="/price/suggest" element={
+                            <ProtectedRoute><AIBiddingSuggestionPage /></ProtectedRoute>
+                        } />
+                        <Route path="/price/land" element={
+                            <ProtectedRoute><OfficialLandPricePage /></ProtectedRoute>
+                        } />
+                        <Route path="/price/download" element={
+                            <ProtectedRoute><DataDownloadPage /></ProtectedRoute>
                         } />
                         
                         {/* 🤖 AI 분석 섹션: 수동 입력 및 마스터 키 기반 분석[cite: 7, 10] */}

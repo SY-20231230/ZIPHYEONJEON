@@ -864,12 +864,13 @@ public class PriceSearchService {
         String sigungu = request.getSigungu() != null ? request.getSigungu() : "";
         String dong = request.getDong();
         String propertyType = request.getPropertyType();
+        String keyword = request.getKeyword();
 
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
                 request.getPage(), request.getSize());
 
         org.springframework.data.domain.Page<Object[]> pageResult = houseRepo.findPropertyDirectory(
-                sigungu, dong, propertyType, pageable);
+                sigungu, dong, keyword, propertyType, pageable);
 
         return pageResult.map(row -> {
             Long repHouseId = (Long) row[0];

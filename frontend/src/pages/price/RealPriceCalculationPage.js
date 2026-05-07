@@ -63,11 +63,10 @@ const RealPriceCalculationPage = () => {
         try {
             const [profileRes, trendRes] = await Promise.all([
                 apiClient.get(`/api/price/profile/${masterId}`),
-                apiClient.get('/api/price/molit', {
+                apiClient.get('/api/price/trend', {
                     params: {
                         sigungu: item.sigungu || searchParams.gugun,
-                        propertyType: searchParams.propertyType,
-                        dealType: searchParams.dealType,
+                        dong: '', // 행정동을 지정하지 않으면 시군구 전체로 조회됨
                         startMonth: `${searchParams.startYear}01`,
                         endMonth: `${searchParams.endYear}12`
                     }
@@ -77,8 +76,8 @@ const RealPriceCalculationPage = () => {
             setSelectedProfile(profileRes.data);
             setMolitData(prev => ({
                 ...prev,
-                content: trendRes.data.content || [],
-                trendGraph: trendRes.data.trendGraph || []
+                // /api/price/trend API는 PriceTrendResponse { trends: [...] } 형식을 반환합니다.
+                trendGraph: trendRes.data.trends || []
             }));
         } catch (err) { alert("상세 리포트 생성 실패"); }
         finally { setIsCalculating(false); }
@@ -172,12 +171,34 @@ const RealPriceCalculationPage = () => {
                                 <div className="h-[350px] w-full">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <AreaChart data={molitData.trendGraph}>
-                                            <defs><linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#2563eb" stopOpacity={0.1}/><stop offset="95%" stopColor="#2563eb" stopOpacity={0}/></linearGradient></defs>
+                                            <defs>
+                                                <linearGradient id="colorSale" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#2563eb" stopOpacity={0.1}/><stop offset="95%" stopColor="#2563eb" stopOpacity={0}/></linearGradient>
+                                                <linearGradient id="colorJeonse" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/><stop offset="95%" stopColor="#10b981" stopOpacity={0}/></linearGradient>
+                                                <linearGradient id="colorRent" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#ec4899" stopOpacity={0.1}/><stop offset="95%" stopColor="#ec4899" stopOpacity={0}/></linearGradient>
+                                            </defs>
                                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                            <XAxis dataKey="month" fontSize={10} axisLine={false} tickLine={false} />
+                                            <XAxis dataKey="period" fontSize={10} axisLine={false} tickLine={false} />
                                             <YAxis hide /><Tooltip contentStyle={{borderRadius: '20px', border: 'none'}} />
-                                            <Area type="monotone" dataKey="avgPrice" stroke="#2563eb" strokeWidth={4} fillOpacity={1} fill="url(#colorPrice)" />
-                                            <Area type="monotone" dataKey="avgDeposit" stroke="#10b981" fill="transparent" strokeWidth={2} />
+                                            
+                                            {/* 아파트 */}
+                                            {searchParams.propertyType === '아파트' && searchParams.dealType === '매매' && <Area type="monotone" name="평균 매매가(3.3㎡)" dataKey="aptSale" stroke="#2563eb" strokeWidth={4} fillOpacity={1} fill="url(#colorSale)" />}
+                                            {searchParams.propertyType === '아파트' && searchParams.dealType === '전세' && <Area type="monotone" name="평균 전세가(3.3㎡)" dataKey="aptJeonse" stroke="#10b981" strokeWidth={4} fillOpacity={1} fill="url(#colorJeonse)" />}
+                                            {searchParams.propertyType === '아파트' && searchParams.dealType === '월세' && (
+                                                <>
+                                                    <Area type="monotone" name="평균 보증금" dataKey="aptWolseDeposit" stroke="#8b5cf6" fill="transparent" strokeWidth={2} strokeDasharray="5 5" />
+                                                    <Area type="monotone" name="평균 월세액" dataKey="aptWolseRent" stroke="#ec4899" strokeWidth={4} fillOpacity={1} fill="url(#colorRent)" />
+                                                </>
+                                            )}
+
+                                            {/* 빌라(연립다세대) */}
+                                            {searchParams.propertyType === '연립다세대' && searchParams.dealType === '매매' && <Area type="monotone" name="평균 매매가(3.3㎡)" dataKey="villaSale" stroke="#2563eb" strokeWidth={4} fillOpacity={1} fill="url(#colorSale)" />}
+                                            {searchParams.propertyType === '연립다세대' && searchParams.dealType === '전세' && <Area type="monotone" name="평균 전세가(3.3㎡)" dataKey="villaJeonse" stroke="#10b981" strokeWidth={4} fillOpacity={1} fill="url(#colorJeonse)" />}
+                                            {searchParams.propertyType === '연립다세대' && searchParams.dealType === '월세' && (
+                                                <>
+                                                    <Area type="monotone" name="평균 보증금" dataKey="villaWolseDeposit" stroke="#8b5cf6" fill="transparent" strokeWidth={2} strokeDasharray="5 5" />
+                                                    <Area type="monotone" name="평균 월세액" dataKey="villaWolseRent" stroke="#ec4899" strokeWidth={4} fillOpacity={1} fill="url(#colorRent)" />
+                                                </>
+                                            )}
                                         </AreaChart>
                                     </ResponsiveContainer>
                                 </div>

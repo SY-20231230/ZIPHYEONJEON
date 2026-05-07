@@ -72,7 +72,7 @@ public interface HouseRepository extends JpaRepository<House, Long> {
 
     // 평균 거래금액(매매 등) - AREA 범위와 타입 지정
     @Query("SELECT AVG(h.trade) FROM House h " +
-            "WHERE h.sigungu LIKE %:sigungu% " +
+            "WHERE h.sigungu LIKE :sigungu% " +
             "AND (h.emd LIKE %:dong% OR h.sigungu LIKE %:dong%) " +
             "AND h.area BETWEEN :minArea AND :maxArea " +
             "AND (:propertyType IS NULL OR h.propertyType = :propertyType) " +
@@ -85,7 +85,7 @@ public interface HouseRepository extends JpaRepository<House, Long> {
 
     // [NEW] 지역 전체 평균 매매/전세금액 (면적 제한 없이 지역/유형 전체의 현재 평균가 산출, AI 추세율 계산용)
     @Query("SELECT AVG(CASE WHEN :dealType = '매매' THEN h.trade ELSE h.deposit END) FROM House h " +
-            "WHERE h.sigungu LIKE %:sigungu% " +
+            "WHERE h.sigungu LIKE :sigungu% " +
             "AND h.propertyType = :propertyType " +
             "AND (h.dealType = '매매' OR h.dealType LIKE '%전세%')")
     Double findAveragePriceBySigunguAndPropertyType(
@@ -99,7 +99,7 @@ public interface HouseRepository extends JpaRepository<House, Long> {
 
     // 평균 전세보증금 - AREA 범위와 타입 지정
     @Query("SELECT AVG(h.deposit) FROM House h " +
-            "WHERE h.sigungu LIKE %:sigungu% " +
+            "WHERE h.sigungu LIKE :sigungu% " +
             "AND (h.emd LIKE %:dong% OR h.sigungu LIKE %:dong%) " +
             "AND h.area BETWEEN :minArea AND :maxArea " +
             "AND (:propertyType IS NULL OR h.propertyType = :propertyType) " +
@@ -142,12 +142,14 @@ public interface HouseRepository extends JpaRepository<House, Long> {
            "FROM House h " +
            "WHERE h.sigungu LIKE %:sigungu% " +
            "AND (:dong IS NULL OR :dong = '' OR h.emd LIKE %:dong% OR h.sigungu LIKE %:dong%) " +
+           "AND (:keyword IS NULL OR :keyword = '' OR h.roadname LIKE %:keyword% OR h.name LIKE %:keyword%) " +
            "AND (:propertyType IS NULL OR :propertyType = '' OR h.propertyType = :propertyType) " +
            "GROUP BY h.sigungu, h.emd, h.name, h.roadname, h.propertyType " +
            "ORDER BY MAX(h.contractYm) DESC")
     Page<Object[]> findPropertyDirectory(
             @Param("sigungu") String sigungu,
             @Param("dong") String dong,
+            @Param("keyword") String keyword,
             @Param("propertyType") String propertyType,
             Pageable pageable);
 }

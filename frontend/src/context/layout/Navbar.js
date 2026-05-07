@@ -34,18 +34,19 @@ const Navbar = () => {
             title: "주거검색",
             path: "/price/calc",
             subMenus: [
-                // 3.3㎡당 평당가 통계가 포함된 정밀 분석 페이지
-                { name: "실거래가 정밀분석", path: "/price/calc" },
-                // 전세가율 및 위험도 분석 Single API 연동 페이지
-                { name: "전세가율 및 위험분석", path: "/price/risk" }
+                { name: "주거용 정밀분석", path: "/price/calc" },
+                { name: "다중 매물 비교", path: "/price/compare" }, // [NEW] 다중 매물 시세 비교 보드
+                { name: "공식 공시지가 조회", path: "/price/land" }, // [NEW] 공시지가 및 PNU 딥서치
+                { name: "전세가율 및 위험도분석", path: "/price/risk" }
             ]
         },
         {
             title: "AI 분석",
             path: "/ai/residential",
             subMenus: [
-                { name: "상가 임대료 예측", path: "/ai/commercial" },
-                { name: "주택 거래가 예측", path: "/ai/residential" }
+                { name: "상권 임대료 예측", path: "/ai/commercial" },
+                { name: "주택 거래가 예측", path: "/ai/residential" },
+                { name: "AI 적정 입찰가 제안", path: "/price/suggest" } // [NEW] AI 적정 입찰가 제안 페이지
             ]
         },
         {
@@ -53,8 +54,8 @@ const Navbar = () => {
             path: "/service",
             subMenus: [
                 { name: "AI 챗봇 상담", path: "/service" },
-                // 매물 배틀 보드(비교) 기능 연동 메뉴[cite: 11]
-                { name: "매물 비교 보드", path: "/service" }
+                { name: "매물 비교 보드", path: "/price/compare" }, // 기존 매물 비교 보드를 진짜 페이지로 연결
+                { name: "실거래가 다운로드 센터", path: "/price/download" } // [NEW] 실거래가 원천 데이터 다운로드
             ]
         },
         {

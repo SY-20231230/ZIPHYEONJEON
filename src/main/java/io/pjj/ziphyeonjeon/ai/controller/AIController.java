@@ -3,9 +3,13 @@ package io.pjj.ziphyeonjeon.ai.controller;
 import io.pjj.ziphyeonjeon.ai.entity.Analysis;
 import io.pjj.ziphyeonjeon.ai.repository.AnalysisRepository;
 import io.pjj.ziphyeonjeon.ai.service.MolitAIPredictService;
+import io.pjj.ziphyeonjeon.auth.entity.User;
+import io.pjj.ziphyeonjeon.auth.repository.UserRepository;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,7 +22,7 @@ public class AIController {
 
     private final MolitAIPredictService aiPredictService;
     private final AnalysisRepository analysisRepository;
-    private final io.pjj.ziphyeonjeon.interaction.util.JwtMockUtil jwtMockUtil; // JWT 파서 주입
+    private final UserRepository userRepository;
 
     @Data
     public static class PredictionRequestPayload {
@@ -30,17 +34,25 @@ public class AIController {
         private List<Map<String, Object>> features; // AI 전처리용 입력 데이터 세트
     }
 
+    private Long getUserId(UserDetails userDetails) {
+        if (userDetails == null) return null;
+        User user = userRepository.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return user.getUserId();
+    }
+
     /**
      * 프론트엔드에서 집값 예측 요청 
      * 파이썬 AI 모델 경유 후 결과 DB 저장 및 반환
      */
     @PostMapping("/predict")
     public ResponseEntity<Analysis> predictPrice(
-            @RequestHeader(value = "Authorization", required = false) String token,
+            @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody PredictionRequestPayload payload) {
         
         // JWT 검증 후 userId 추출 (프론트 에러 해결의 핵심)
-        Long userId = jwtMockUtil.extractUserIdFromToken(token);
+        Long userId = getUserId(userDetails);
+        if (userId == null) return ResponseEntity.status(401).build();
 
         Analysis result = aiPredictService.predictAndSave(
                 userId,
@@ -72,9 +84,11 @@ public class AIController {
      */
     @GetMapping("/predict/me")
     public ResponseEntity<List<Analysis>> getMyPredictions(
-            @RequestHeader(value = "Authorization", required = false) String token) {
+            @AuthenticationPrincipal UserDetails userDetails) {
         
-        Long userId = jwtMockUtil.extractUserIdFromToken(token);
+        Long userId = getUserId(userDetails);
+        if (userId == null) return ResponseEntity.status(401).build();
+        
         List<Analysis> myPredictions = aiPredictService.getMyPredictions(userId);
         return ResponseEntity.ok(myPredictions);
     }
