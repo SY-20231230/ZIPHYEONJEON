@@ -4,8 +4,8 @@
  * 업데이트: 2026. 04. 30 (백엔드 통합 지침 반영 완료)
  * 특징: 드롭다운 서브메뉴 시스템, 인증 기반 UI 분기
  */
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from 'context/AuthContext'; // 사용자 인증 컨텍스트
 import ConfirmModal from 'components/common/ConfirmModal'; // 공통 확인 모달
 
@@ -13,8 +13,32 @@ const Navbar = () => {
     const { isAuthenticated, user, logout } = useAuth();
     const navigate = useNavigate();
 
+    const location = useLocation();
+    const isAuthPage = location.pathname === '/';
+
     const [activeMenu, setActiveMenu] = useState(null);
     const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
+    // AuthPage 스크롤/호버 로직
+    const [isScrolled, setIsScrolled] = useState(false);
+    const [isHovered, setIsHovered] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 50);
+        };
+        const handleMouseMove = (e) => {
+            if (e.clientY <= 90) setIsHovered(true);
+            else setIsHovered(false);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        window.addEventListener('mousemove', handleMouseMove);
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('mousemove', handleMouseMove);
+        };
+    }, []);
 
     /**
      * 💡 04.30 업데이트 반영 데이터셋
@@ -80,88 +104,90 @@ const Navbar = () => {
 
     return (
         <>
-            <nav className="fixed top-0 w-full h-20 bg-white/90 backdrop-blur-xl border-b border-slate-100 z-[100] px-10 flex items-center justify-between">
-                {/* 브랜드 로고 */}
-                <div className="flex items-center gap-12 h-full">
-                    <Link to="/main" className="text-2xl font-black tracking-tighter text-[#002855] flex items-center gap-2">
-                        <span className="bg-[#002855] text-white p-1.5 rounded-xl text-xl shadow-lg shadow-blue-900/20">🏛️</span>
-                        집현전 <span className="text-blue-500 font-light italic text-sm tracking-widest">ZIP</span>
-                    </Link>
+            <div
+                className={`fixed top-0 w-full z-[100] transition-transform duration-500 ease-in-out ${(isAuthPage && isScrolled && !isHovered) ? '-translate-y-full' : 'translate-y-0'
+                    }`}
+            >
+                <nav className="w-full h-20 bg-white/80 backdrop-blur-2xl border-b border-slate-100/50 shadow-[0_4px_30px_rgba(0,0,0,0.02)] px-10 flex items-center justify-between">
+                    {/* 브랜드 로고 */}
+                    <div className="flex items-center gap-12 h-full">
+                        <Link to="/main" className="text-2xl font-black tracking-tighter text-[#002855] flex items-center gap-2">
+                            <span className="bg-[#002855] text-white p-1.5 rounded-xl text-xl shadow-lg shadow-blue-900/20">🏛️</span>
+                            집현전 <span className="text-blue-500 font-light italic text-sm tracking-widest">ZIP</span>
+                        </Link>
 
-                    {/* 메인 메뉴 (로그인 시 노출) */}
-                    {isAuthenticated && (
-                        <div className="hidden lg:flex items-center h-full gap-2">
-                            {navConfig.map((menu, idx) => (
-                                <div 
-                                    key={idx}
-                                    className="relative h-full flex items-center"
-                                    onMouseEnter={() => setActiveMenu(idx)}
-                                    onMouseLeave={() => setActiveMenu(null)}
-                                >
-                                    <button 
-                                        onClick={() => navigate(menu.path)}
-                                        className={`px-5 py-2 rounded-xl text-[14px] font-black transition-all duration-300 ${
-                                            activeMenu === idx ? 'bg-blue-50 text-blue-600' : 'text-slate-500 hover:text-slate-900'
-                                        }`}
+                        {/* 메인 메뉴 (로그인 시 노출) */}
+                        {isAuthenticated && (
+                            <div className="hidden lg:flex items-center h-full gap-2">
+                                {navConfig.map((menu, idx) => (
+                                    <div
+                                        key={idx}
+                                        className="relative h-full flex items-center"
+                                        onMouseEnter={() => setActiveMenu(idx)}
+                                        onMouseLeave={() => setActiveMenu(null)}
                                     >
-                                        {menu.title}
-                                    </button>
+                                        <button
+                                            onClick={() => navigate(menu.path)}
+                                            className={`px-5 py-2 rounded-xl text-[14px] font-black transition-all duration-300 ${activeMenu === idx ? 'bg-blue-50 text-blue-600' : 'text-slate-500 hover:text-slate-900'
+                                                }`}
+                                        >
+                                            {menu.title}
+                                        </button>
 
-                                    {/* 드롭다운 서브메뉴 */}
-                                    <div className={`absolute top-[75px] left-0 w-52 bg-white border border-slate-100 shadow-2xl rounded-2xl overflow-hidden transition-all duration-200 origin-top-left ${
-                                        activeMenu === idx ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
-                                    }`}>
-                                        <div className="p-2 space-y-1 bg-gradient-to-b from-white to-slate-50">
-                                            {menu.subMenus.map((sub, sIdx) => (
-                                                <button
-                                                    key={sIdx}
-                                                    onClick={() => navigate(sub.path)}
-                                                    className="w-full text-left px-4 py-3 text-xs font-bold text-slate-500 hover:bg-blue-600 hover:text-white rounded-xl transition-all duration-200 flex justify-between items-center group/item"
-                                                >
-                                                    {sub.name}
-                                                    <span className="opacity-0 group-hover/item:opacity-100 transition-opacity">→</span>
-                                                </button>
-                                            ))}
+                                        {/* 드롭다운 서브메뉴 */}
+                                        <div className={`absolute top-[75px] left-0 w-52 bg-white border border-slate-100 shadow-2xl rounded-2xl overflow-hidden transition-all duration-200 origin-top-left ${activeMenu === idx ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
+                                            }`}>
+                                            <div className="p-2 space-y-1 bg-gradient-to-b from-white to-slate-50">
+                                                {menu.subMenus.map((sub, sIdx) => (
+                                                    <button
+                                                        key={sIdx}
+                                                        onClick={() => navigate(sub.path)}
+                                                        className="w-full text-left px-4 py-3 text-xs font-bold text-slate-500 hover:bg-blue-600 hover:text-white rounded-xl transition-all duration-200 flex justify-between items-center group/item"
+                                                    >
+                                                        {sub.name}
+                                                        <span className="opacity-0 group-hover/item:opacity-100 transition-opacity">→</span>
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                {/* 우측 사용자 프로필/로그아웃 영역 */}
-                <div className="flex items-center gap-5">
-                    {isAuthenticated ? (
-                        <>
-                            <div 
-                                className="flex items-center gap-3 px-4 py-2 bg-slate-50 border border-slate-100 rounded-full cursor-pointer hover:bg-blue-50 transition-all group"
-                                onClick={() => navigate('/mypage')}
-                            >
-                                <div className="w-8 h-8 bg-white rounded-full border border-slate-200 flex items-center justify-center text-[11px] font-black text-blue-600 shadow-sm group-hover:scale-110 transition-transform">
-                                    {user?.userName?.charAt(0) || 'U'}
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="text-[9px] text-slate-400 font-black uppercase tracking-tighter leading-none mb-1">Authenticated</span>
-                                    <span className="text-xs font-black text-slate-700 leading-none">{user?.userName || '사용자'} 님</span>
-                                </div>
+                                ))}
                             </div>
-                            
-                            <button 
-                                onClick={handleLogoutClick}
-                                className="text-[11px] font-black text-rose-500 px-4 py-2 hover:bg-rose-50 rounded-xl transition-all"
-                            >LOGOUT</button>
-                        </>
-                    ) : (
-                        <Link to="/" className="px-8 py-3 bg-[#002855] text-white text-xs font-black rounded-2xl hover:bg-blue-600 shadow-xl transition-all">
-                            시스템 접속
-                        </Link>
-                    )}
-                </div>
-            </nav>
+                        )}
+                    </div>
 
-            {/* 로그아웃 확인 모달 */}
-            <ConfirmModal 
+                    {/* 우측 사용자 프로필/로그아웃 영역 */}
+                    <div className="flex items-center gap-5">
+                        {isAuthenticated ? (
+                            <>
+                                <div
+                                    className="flex items-center gap-3 px-4 py-2 bg-slate-50 border border-slate-100 rounded-full cursor-pointer hover:bg-blue-50 transition-all group"
+                                    onClick={() => navigate('/mypage')}
+                                >
+                                    <div className="w-8 h-8 bg-white rounded-full border border-slate-200 flex items-center justify-center text-[11px] font-black text-blue-600 shadow-sm group-hover:scale-110 transition-transform">
+                                        {user?.userName?.charAt(0) || 'U'}
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-[9px] text-slate-400 font-black uppercase tracking-tighter leading-none mb-1">Authenticated</span>
+                                        <span className="text-xs font-black text-slate-700 leading-none">{user?.userName || '사용자'} 님</span>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={handleLogoutClick}
+                                    className="text-[11px] font-black text-rose-500 px-4 py-2 hover:bg-rose-50 rounded-xl transition-all"
+                                >LOGOUT</button>
+                            </>
+                        ) : (
+                            // 비로그인 상태일 때는 시스템 접속 버튼 대신 여백만 유지하거나 생략
+                            <div className="w-8"></div>
+                        )}
+                    </div>
+                </nav>
+            </div>
+
+            {/* 로그아웃 확인 모달 */ }
+            <ConfirmModal
                 isOpen={isLogoutModalOpen}
                 title="로그아웃 확인"
                 message={"로그아웃 하시겠습니까?\n주의: 진행 중인 내용이 사라질 수 있습니다."}
