@@ -219,7 +219,7 @@ public class PriceSearchService {
             String t1 = tokens[1];
             if ((t0.endsWith("도") || t0.endsWith("시") || t0.endsWith("특별자치도")) &&
                     (t1.endsWith("구") || t1.endsWith("시") || t1.endsWith("군"))) {
-                return t0 + " " + t1;
+                return t1; // 시도(서울특별시) 제외하고 시군구(동작구)만 반환하여 DB 매칭 확률 상향
             }
         }
         if (tokens.length >= 1) {
@@ -248,27 +248,22 @@ public class PriceSearchService {
     }
 
     private String parseSigungu(String roadAddr, String jibunAddr, String rawAddress) {
-        String result = extractSigunguToken(jibunAddr);
-        if (result != null)
-            return result;
+        String result = extractSigunguToken(roadAddr);
+        if (result != null) return result;
+        result = extractSigunguToken(jibunAddr);
+        if (result != null) return result;
+        return parseSigungu(rawAddress);
+    }
 
-        result = extractSigunguToken(roadAddr);
-        if (result != null)
-            return result;
-
-        result = extractSigunguToken(rawAddress);
-        if (result != null)
-            return result;
-
-        String fallback = jibunAddr != null ? jibunAddr : (roadAddr != null ? roadAddr : rawAddress);
-        if (fallback != null) {
-            String[] tokens = fallback.split(" ");
-            if (tokens.length >= 2) {
-                return tokens[0] + " " + tokens[1];
+    private String parseDong(String addr) {
+        if (addr == null) return "";
+        String[] tokens = addr.split(" ");
+        for (String token : tokens) {
+            if (token.endsWith("동") || token.endsWith("읍") || token.endsWith("면")) {
+                return token;
             }
-            return fallback;
         }
-        return null;
+        return "";
     }
 
     private String parseRoadName(String roadAddr) {
@@ -702,7 +697,7 @@ public class PriceSearchService {
 
     // --- P-003: 개별 공시지가 조회 (Spec 준수) ---
     public String searchLandPrice(io.pjj.ziphyeonjeon.PriceSearch.dto.request.OfficialLandPriceRequest request) {
-        // Spec: uninum_code(PNU), year
+        // Spec: uninum_code(PNU)
         if (request.getUninum_code() != null) {
             return vworldOfficialLandPriceClient.getOfficialLandPriceRaw(request.getUninum_code());
         }
@@ -793,7 +788,7 @@ public class PriceSearchService {
                 : parseSigungu(address);
         String dong = (request.getDong() != null && !request.getDong().isEmpty())
                 ? request.getDong()
-                : "";
+                : parseDong(address);
 
         // 면적 ±10% 범위
         java.math.BigDecimal margin = area.multiply(new java.math.BigDecimal("0.10"))
@@ -896,27 +891,50 @@ public class PriceSearchService {
         String propertyType = request.getPropertyType();
         String keyword = request.getKeyword();
 
+        // [P-009-UP] 주소 정규화 로직: 키워드가 주소 형태일 때 V-World를 통해 검색어 보정
+        if (keyword != null && keyword.trim().length() > 2) {
+            try {
+                io.pjj.ziphyeonjeon.global.API.vworld.dto.search.VworldSearchResponse vres = vworldSearchClient
+                        .searchJuso(keyword);
+
+                if (vres != null && vres.response != null && vres.response.result != null
+                        && vres.response.result.items != null && !vres.response.result.items.isEmpty()) {
+
+                    io.pjj.ziphyeonjeon.global.API.vworld.dto.search.VworldSearchResponse.Item firstItem = vres.response.result.items
+                            .get(0);
+                    String roadAddr = (firstItem.address != null) ? firstItem.address.road : null;
+
+                    if (roadAddr != null) {
+                        // 도로명 추출 (예: "상도로")
+                        String normalizedRoad = parseRoadName(roadAddr);
+                        if (normalizedRoad != null) {
+                            keyword = normalizedRoad;
+                        }
+
+                        // [Fix] 지역 정보 보충 로직 삭제: DB 데이터 포맷(은평구 vs 서울시 은평구) 불일치로 인한 검색 실패 방지
+
+                        log.info("Address normalized: '{}' -> keyword: '{}'",
+                                request.getKeyword(), keyword);
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("V-World normalization skipped due to error: {}", e.getMessage());
+            }
+        }
+
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
                 request.getPage(), request.getSize());
 
         org.springframework.data.domain.Page<Object[]> pageResult = houseRepo.findPropertyDirectory(
                 sigungu, dong, keyword, propertyType, pageable);
 
-        return pageResult.map(row -> {
-            Long repHouseId = (Long) row[0];
-            String name = (String) row[1];
-            String roadname = (String) row[2];
-            Long totalTxs = (Long) row[3];
-            String propType = (String) row[4];
-
-            return io.pjj.ziphyeonjeon.PriceSearch.dto.response.PropertyDirectoryResponse.builder()
-                    .representativeHouseId(repHouseId)
-                    .complexName(name)
-                    .roadAddress(roadname)
-                    .totalTransactions(totalTxs)
-                    .propertyType(propType)
-                    .build();
-        });
+        return pageResult.map(row -> io.pjj.ziphyeonjeon.PriceSearch.dto.response.PropertyDirectoryResponse.builder()
+                .representativeHouseId((Long) row[0])
+                .complexName((String) row[1])
+                .roadAddress((String) row[2])
+                .totalTransactions((Long) row[3])
+                .propertyType((String) row[4])
+                .build());
     }
 
     // --- P-010: 매물 배틀 보드 (All-in-One Property Profile API) ---
