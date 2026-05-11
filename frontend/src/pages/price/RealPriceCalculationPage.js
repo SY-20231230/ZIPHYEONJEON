@@ -7,8 +7,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import apiClient from '../../api/apiClient'; 
+import apiClient from '../../api/apiClient';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { interactionService } from '../../api/interaction/interactionService';
+
 
 const REGION_MAP = {
     "서울특별시": ["강남구", "강동구", "강북구", "강서구", "관악구", "광진구", "구로구", "금천구", "노원구", "도봉구", "동대문구", "동작구", "마포구", "서대문구", "서초구", "성동구", "성북구", "송파구", "양천구", "영등포구", "용산구", "은평구", "종로구", "중구", "중랑구"],
@@ -24,34 +26,42 @@ const RealPriceCalculationPage = () => {
         startYear: '2024', endYear: '2026', page: 0
     });
     const [keyword, setKeyword] = useState('');
-    const [complexList, setComplexList] = useState([]); 
-    const [selectedProfile, setSelectedProfile] = useState(null); 
-    const [molitData, setMolitData] = useState({ content: [], trendGraph: [], totalPages: 0 }); 
+    const [complexList, setComplexList] = useState([]);
+    const [selectedProfile, setSelectedProfile] = useState(null);
+    const [molitData, setMolitData] = useState({ content: [], trendGraph: [], totalPages: 0 });
     const [isCalculating, setIsCalculating] = useState(false);
+    const [isLiked, setIsLiked] = useState(false);
+    const [activeMode, setActiveMode] = useState('FILTER'); // [NEW] 현재 활성화된 검색 모드 추적
+
 
     /**
      * 2. [Action] 단지 목록 조회 (P-009)
+     * [업데이트] 주소 직접 검색(ADDRESS)과 지역 필터(FILTER)를 분리하여 백엔드 인덱스 최적화 대응
      */
     const handleSearch = async (mode, targetPage = 0) => {
         setIsCalculating(true);
+        setActiveMode(mode); // [NEW] 검색 모드 상태 업데이트
         try {
-            if (mode === 'ROAD') {
-                const res = await apiClient.get('/api/price/search', { params: { address: keyword } });
-                setComplexList(res.data || []);
-            } else {
-                const payload = {
-                    sigungu: searchParams.gugun, // 백엔드 LIKE 쿼리 최적화
-                    propertyType: searchParams.propertyType,
-                    page: targetPage, size: 20
-                };
-                const res = await apiClient.post('/api/price/directory', payload);
-                setComplexList(res.data.content || []);
-                setMolitData(prev => ({ ...prev, totalPages: res.data.totalPages }));
-                setSearchParams(prev => ({ ...prev, page: targetPage }));
-            }
+            // mode가 'ADDRESS'인 경우 sigungu를 비워 전지역 검색 허용, 'FILTER'인 경우 선택된 gugun 사용
+            const payload = {
+                sigungu: mode === 'ADDRESS' ? '' : searchParams.gugun,
+                keyword: mode === 'ADDRESS' ? keyword : '',
+                propertyType: searchParams.propertyType,
+                page: targetPage, 
+                size: 20
+            };
+            
+            const res = await apiClient.post('/api/price/directory', payload);
+            setComplexList(res.data.content || []);
+            setMolitData(prev => ({ ...prev, totalPages: res.data.totalPages }));
+            setSearchParams(prev => ({ ...prev, page: targetPage }));
             setSelectedProfile(null);
-        } catch (err) { alert("데이터 로드 실패"); }
-        finally { setIsCalculating(false); }
+        } catch (err) { 
+            console.error("Search Error:", err);
+            alert("데이터 로드 실패"); 
+        } finally { 
+            setIsCalculating(false); 
+        }
     };
 
     /**
@@ -79,9 +89,35 @@ const RealPriceCalculationPage = () => {
                 // /api/price/trend API는 PriceTrendResponse { trends: [...] } 형식을 반환합니다.
                 trendGraph: trendRes.data.trends || []
             }));
+
+            // [찜 여부 확인]
+            try {
+                const likedRes = await interactionService.getLikedHouses();
+                const likedList = likedRes.data || likedRes || [];
+                const alreadyLiked = likedList.some(f => (f.houseId || f.HOUSE_ID || f.representativeHouseId) === masterId);
+                setIsLiked(alreadyLiked);
+            } catch (err) {
+                console.warn("찜 상태 로드 실패");
+            }
+
         } catch (err) { alert("상세 리포트 생성 실패"); }
         finally { setIsCalculating(false); }
     };
+
+    /**
+     * 4. [Action] 찜 토글 (관심 매물 추가/해제)
+     */
+    const handleToggleLike = async () => {
+        if (!selectedProfile) return;
+        try {
+            const hId = selectedProfile.houseId;
+            await interactionService.toggleLike(hId);
+            setIsLiked(!isLiked);
+        } catch (err) {
+            alert("찜 처리에 실패했습니다.");
+        }
+    };
+
 
     // --- UI Helper ---
     const getRiskBadge = (level) => {
@@ -99,17 +135,58 @@ const RealPriceCalculationPage = () => {
 
             <header><h1 className="text-4xl font-black text-slate-900 italic tracking-tighter uppercase">집현전 <span className="text-blue-600 text-sm font-light ml-1">PRICE ANALYSIS</span></h1></header>
 
-            <main className="grid grid-cols-12 gap-5 bg-white p-8 rounded-[40px] shadow-xl border border-slate-100">
-                <div className="col-span-4 space-y-2">
-                    <label className="text-[10px] font-black text-blue-600 uppercase ml-1">Direct Address</label>
-                    <input className="w-full bg-slate-50 p-4 rounded-2xl font-bold border-none" placeholder="도로명/단지명 입력" value={keyword} onChange={e => setKeyword(e.target.value)} />
+            <main className="grid grid-cols-12 gap-8 bg-white p-10 rounded-[45px] shadow-2xl border border-slate-100">
+                {/* 구역 1: 주소 직접 검색 (전 지역 대상) */}
+                <div className="col-span-5 space-y-3 pr-8 border-r border-slate-100">
+                    <label className="text-[10px] font-black text-blue-600 uppercase flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span> Address Search
+                    </label>
+                    <div className="relative group">
+                        <input 
+                            className="w-full bg-slate-50 p-5 pr-16 rounded-[24px] font-bold border-2 border-transparent focus:border-blue-500 focus:bg-white transition-all shadow-inner" 
+                            placeholder="도로명 주소 또는 단지명 입력" 
+                            value={keyword} 
+                            onChange={e => setKeyword(e.target.value)}
+                            onKeyDown={e => e.key === 'Enter' && handleSearch('ADDRESS')}
+                        />
+                        <button 
+                            onClick={() => handleSearch('ADDRESS')}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 bg-blue-600 text-white p-3 rounded-2xl shadow-lg hover:bg-blue-700 hover:scale-105 transition-all"
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                        </button>
+                    </div>
+                    <p className="text-[9px] text-slate-400 font-medium ml-2 italic">※ 주소를 정확히 입력할수록 정확한 매물을 찾습니다.</p>
                 </div>
-                <div className="col-span-6 grid grid-cols-3 gap-2 items-end">
-                    <select className="bg-slate-50 p-4 rounded-2xl font-bold text-sm border-none" value={searchParams.gugun} onChange={e => setSearchParams({...searchParams, gugun: e.target.value})}>
-                        {REGION_MAP[searchParams.sido].map(g => <option key={g} value={g}>{g}</option>)}
-                    </select>
-                    <select className="bg-slate-50 p-4 rounded-2xl font-bold text-sm border-none" value={searchParams.propertyType} onChange={e => setSearchParams({...searchParams, propertyType: e.target.value})}><option value="아파트">아파트</option><option value="연립다세대">빌라</option></select>
-                    <button onClick={() => handleSearch('FILTER')} className="bg-blue-600 text-white p-4 rounded-2xl font-black shadow-lg">조회 실행</button>
+
+                {/* 구역 2: 지역 및 유형 필터 (특정 지역 대상) */}
+                <div className="col-span-7 space-y-3 pl-4">
+                    <label className="text-[10px] font-black text-slate-400 uppercase flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 bg-slate-300 rounded-full"></span> Regional Filter
+                    </label>
+                    <div className="grid grid-cols-12 gap-3 items-end">
+                        <div className="col-span-4">
+                            <select className="w-full bg-slate-50 p-5 rounded-[24px] font-bold text-sm border-none cursor-pointer hover:bg-slate-100 transition-all shadow-inner" value={searchParams.gugun} onChange={e => setSearchParams({ ...searchParams, gugun: e.target.value })}>
+                                {REGION_MAP[searchParams.sido].map(g => <option key={g} value={g}>{g}</option>)}
+                            </select>
+                        </div>
+                        <div className="col-span-4">
+                            <select className="w-full bg-slate-50 p-5 rounded-[24px] font-bold text-sm border-none cursor-pointer hover:bg-slate-100 transition-all shadow-inner" value={searchParams.propertyType} onChange={e => setSearchParams({ ...searchParams, propertyType: e.target.value })}>
+                                <option value="아파트">아파트</option>
+                                <option value="연립다세대">빌라(다세대)</option>
+                            </select>
+                        </div>
+                        <div className="col-span-4">
+                            <button 
+                                onClick={() => handleSearch('FILTER')} 
+                                className="w-full h-[60px] bg-slate-900 text-white p-4 rounded-[24px] font-black shadow-xl hover:bg-slate-800 active:scale-95 transition-all flex items-center justify-center gap-2"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M3 4.5h18m-18 5h18m-18 5h18m-18 5h18" /></svg>
+                                필터 조회
+                            </button>
+                        </div>
+                    </div>
+                    <p className="text-[9px] text-slate-400 font-medium ml-2 italic">※ 지역과 유형을 선택하여 목록을 불러옵니다.</p>
                 </div>
             </main>
 
@@ -128,9 +205,9 @@ const RealPriceCalculationPage = () => {
                     </div>
                     {molitData.totalPages > 1 && (
                         <div className="p-4 bg-slate-50 border-t flex justify-between items-center px-8">
-                            <button disabled={searchParams.page === 0} onClick={() => handleSearch('FILTER', searchParams.page - 1)} className="text-xs font-black disabled:opacity-20">PREV</button>
+                            <button disabled={searchParams.page === 0} onClick={() => handleSearch(activeMode, searchParams.page - 1)} className="text-xs font-black disabled:opacity-20">PREV</button>
                             <span className="text-[10px] font-bold text-slate-400">{searchParams.page + 1} / {molitData.totalPages}</span>
-                            <button disabled={searchParams.page + 1 >= molitData.totalPages} onClick={() => handleSearch('FILTER', searchParams.page + 1)} className="text-xs font-black disabled:opacity-20">NEXT</button>
+                            <button disabled={searchParams.page + 1 >= molitData.totalPages} onClick={() => handleSearch(activeMode, searchParams.page + 1)} className="text-xs font-black disabled:opacity-20">NEXT</button>
                         </div>
                     )}
                 </aside>
@@ -141,12 +218,22 @@ const RealPriceCalculationPage = () => {
                         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
                             <section className="bg-white p-12 rounded-[56px] shadow-sm border border-slate-100">
                                 <header className="flex justify-between items-start mb-10 pb-8 border-b border-slate-50">
-                                    <div>
-                                        <h2 className="text-4xl font-black text-slate-900 tracking-tighter italic">{selectedProfile.complexName}</h2>
-                                        <p className="text-slate-400 font-bold text-xs mt-2 uppercase">{selectedProfile.roadAddress}</p>
+                                    <div className="flex items-center gap-6">
+                                        <button
+                                            onClick={handleToggleLike}
+                                            className={`w-14 h-14 rounded-[20px] flex items-center justify-center text-2xl shadow-sm transition-all border ${isLiked ? 'bg-rose-50 border-rose-100 text-rose-500 scale-105' : 'bg-slate-50 border-slate-100 text-slate-300 hover:text-rose-400'
+                                                }`}
+                                        >
+                                            {isLiked ? '❤️' : '🤍'}
+                                        </button>
+                                        <div>
+                                            <h2 className="text-4xl font-black text-slate-900 tracking-tighter italic">{selectedProfile.complexName}</h2>
+                                            <p className="text-slate-400 font-bold text-xs mt-2 uppercase">{selectedProfile.roadAddress}</p>
+                                        </div>
                                     </div>
                                     {getRiskBadge(selectedProfile.riskLevel)}
                                 </header>
+
                                 <div className="grid grid-cols-3 gap-6">
                                     <div className="bg-slate-50 p-8 rounded-[40px] text-center">
                                         <p className="text-[10px] font-black text-slate-400 uppercase mb-2">Latest Trade</p>
@@ -172,14 +259,14 @@ const RealPriceCalculationPage = () => {
                                     <ResponsiveContainer width="100%" height="100%">
                                         <AreaChart data={molitData.trendGraph}>
                                             <defs>
-                                                <linearGradient id="colorSale" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#2563eb" stopOpacity={0.1}/><stop offset="95%" stopColor="#2563eb" stopOpacity={0}/></linearGradient>
-                                                <linearGradient id="colorJeonse" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.1}/><stop offset="95%" stopColor="#10b981" stopOpacity={0}/></linearGradient>
-                                                <linearGradient id="colorRent" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#ec4899" stopOpacity={0.1}/><stop offset="95%" stopColor="#ec4899" stopOpacity={0}/></linearGradient>
+                                                <linearGradient id="colorSale" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#2563eb" stopOpacity={0.1} /><stop offset="95%" stopColor="#2563eb" stopOpacity={0} /></linearGradient>
+                                                <linearGradient id="colorJeonse" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#10b981" stopOpacity={0.1} /><stop offset="95%" stopColor="#10b981" stopOpacity={0} /></linearGradient>
+                                                <linearGradient id="colorRent" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#ec4899" stopOpacity={0.1} /><stop offset="95%" stopColor="#ec4899" stopOpacity={0} /></linearGradient>
                                             </defs>
                                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                                             <XAxis dataKey="period" fontSize={10} axisLine={false} tickLine={false} />
-                                            <YAxis hide /><Tooltip contentStyle={{borderRadius: '20px', border: 'none'}} />
-                                            
+                                            <YAxis hide /><Tooltip contentStyle={{ borderRadius: '20px', border: 'none' }} />
+
                                             {/* 아파트 */}
                                             {searchParams.propertyType === '아파트' && searchParams.dealType === '매매' && <Area type="monotone" name="평균 매매가(3.3㎡)" dataKey="aptSale" stroke="#2563eb" strokeWidth={4} fillOpacity={1} fill="url(#colorSale)" />}
                                             {searchParams.propertyType === '아파트' && searchParams.dealType === '전세' && <Area type="monotone" name="평균 전세가(3.3㎡)" dataKey="aptJeonse" stroke="#10b981" strokeWidth={4} fillOpacity={1} fill="url(#colorJeonse)" />}
@@ -206,7 +293,7 @@ const RealPriceCalculationPage = () => {
                         </div>
                     ) : (
                         <div className="h-full flex items-center justify-center p-20 text-center opacity-30 grayscale italic font-black text-slate-300 uppercase tracking-widest leading-loose">
-                            Select a property from the directory <br/> to generate market report
+                            Select a property from the directory <br /> to generate market report
                         </div>
                     )}
                 </main>
