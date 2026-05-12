@@ -57,12 +57,8 @@ venv/
 __pycache__/
 **/__pycache__/
 *.pyc
-<<<<<<< HEAD
-=======
-
 ### 백엔드 로그 파일 차단 ###
 logs/
 **/logs/
 *.log
 *.log.*
->>>>>>> c093e2c96a6436bea0094cd20b7e7b9f0dc8018a
