@@ -249,14 +249,17 @@ public class PriceSearchService {
 
     private String parseSigungu(String roadAddr, String jibunAddr, String rawAddress) {
         String result = extractSigunguToken(roadAddr);
-        if (result != null) return result;
+        if (result != null)
+            return result;
         result = extractSigunguToken(jibunAddr);
-        if (result != null) return result;
+        if (result != null)
+            return result;
         return parseSigungu(rawAddress);
     }
 
     private String parseDong(String addr) {
-        if (addr == null) return "";
+        if (addr == null)
+            return "";
         String[] tokens = addr.split(" ");
         for (String token : tokens) {
             if (token.endsWith("동") || token.endsWith("읍") || token.endsWith("면")) {
