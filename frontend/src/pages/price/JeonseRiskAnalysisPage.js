@@ -125,7 +125,7 @@ const JeonseRiskAnalysisPage = () => {
                                     Level: {riskStyles[result.riskLevel]?.label || '분석 중'}
                                 </span>
                                 <h2 className="text-7xl font-black text-slate-900 mt-6 tracking-tighter">
-                                    {result.myJeonseRatio || 0}<span className="text-2xl ml-1 text-slate-300">%</span>
+                                    {result.myJeonseRatio ? result.myJeonseRatio.toFixed(1) : 0}<span className="text-2xl ml-1 text-slate-300">%</span>
                                 </h2>
                                 <p className="text-slate-400 font-bold text-[10px] mt-2 uppercase tracking-widest italic">Current Jeonse to Price Ratio</p>
                             </div>
