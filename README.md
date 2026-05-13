@@ -16,12 +16,33 @@
 <img width="2800" height="1152" alt="ERD_ZIPHYEONJEONv1" src="https://github.com/user-attachments/assets/c60dbd65-3641-4a13-a4ec-9a12c9aff98b" />
 
 
-#### 역할 및 포지션
-#### 윤성용
-Product Owner (PO) / AI Engineer / Backend Developer
+## 역할 및 포지션
 
-#### 정지훈
-Project Manager (PM) / Backend & AI Engineer
+### 윤성용
+**Product Owner (PO) / AI Architect / Backend Developer**
 
-#### 김동규
-Frontend Developer / Chatbot AI Engineer
+- 서비스 아이디어 및 핵심 기능 기획
+- 주택 데이터 기반 백엔드 개발
+- 주택 시세예측 AI 개발
+- 챗봇 AI 개발
+- 개발 일정 및 협업 조율
+
+---
+
+### 정지훈
+**Project Manager (PM) / Backend Developer / AI Engineer**
+
+- 프로젝트 일정 및 협업 관리
+- GitHub · Notion · RDS 환경 세팅
+- 상가 기능 백엔드 개발
+- 상가 시세예측 AI 개발
+
+---
+
+### 김동규
+**Frontend Lead / Backend Developer / Chatbot AI Engineer**
+
+- 프론트엔드 전체 개발
+- JWT 인증 및 로그인 백엔드 개발
+- AI 챗봇 백엔드 개발
+- 프론트-백엔드 연동 및 UI 구현
