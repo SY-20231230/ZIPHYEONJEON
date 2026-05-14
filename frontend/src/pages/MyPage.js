@@ -90,11 +90,11 @@ const MyPage = () => {
                     </div>
                     <div className="flex items-center gap-2 bg-slate-50 p-6 rounded-[40px] border border-slate-100">
                         <div className="text-center px-10 border-r border-slate-200">
-                            <p className="text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">Saved Likes</p>
+                            <p className="text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">찜한 매물</p>
                             <p className="text-4xl font-black text-slate-900 leading-none">{favorites.length}</p>
                         </div>
                         <div className="text-center px-10">
-                            <p className="text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">AI Reports</p>
+                            <p className="text-[10px] font-black text-slate-400 uppercase mb-2 tracking-widest">AI 리포트</p>
                             <p className="text-4xl font-black text-blue-600 leading-none">{aiHistory.length}</p>
                         </div>
                     </div>
@@ -107,9 +107,9 @@ const MyPage = () => {
                 <section className="bg-white p-12 rounded-[56px] shadow-sm border border-slate-100">
                     <header className="flex justify-between items-center mb-10">
                         <h3 className="text-2xl font-black text-slate-900 tracking-tighter flex items-center gap-4 italic">
-                            <span className="w-2 h-8 bg-blue-600 rounded-full"></span>Recently Viewed
+                            <span className="w-2 h-8 bg-blue-600 rounded-full"></span>최근 본 매물
                         </h3>
-                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest animate-pulse">Shift + Mouse Wheel to Scroll →</span>
+                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest animate-pulse">Shift + 마우스 휠로 가로 스크롤 가능 →</span>
                     </header>
 
                     {recentViews.length > 0 ? (
@@ -122,27 +122,24 @@ const MyPage = () => {
                                     <div key={idx} onClick={() => handleItemClick(item)} className="min-w-[320px] shrink-0 snap-start p-8 bg-slate-50 rounded-[45px] hover:bg-white border border-transparent hover:border-blue-200 transition-all cursor-pointer group shadow-sm hover:shadow-2xl">
                                         <div className="flex justify-between items-start mb-6">
                                             <span className="text-[9px] font-black text-slate-300 uppercase">Rec. {recentViews.length - idx}</span>
-                                            <span className="text-[9px] text-slate-300 font-bold uppercase">{item.viewedTime ? new Date(item.viewedTime).toLocaleDateString() : 'Today'}</span>
                                         </div>
                                         <h4 className="text-xl font-black text-slate-800 group-hover:text-blue-600 transition-colors truncate italic">{base.NAME || base.complexName || `매물 #${base.houseId}`}</h4>
-                                        <p className="text-[11px] text-slate-400 font-bold mt-2 truncate uppercase tracking-tighter">{base.roadAddress || "Address Loading..."}</p>
-                                        <div className="mt-10 pt-6 border-t border-slate-100 flex justify-between items-end">
-                                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Trade Value</span>
-                                            <span className="text-xl font-black text-slate-700">{(base.TRADE || 0).toLocaleString()} <span className="text-xs font-bold text-slate-400">만원</span></span>
+                                        <div className="mt-6 pt-4 border-t border-slate-50 flex justify-end">
+                                            <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest group-hover:translate-x-1 transition-transform">분석하기 →</span>
                                         </div>
                                     </div>
                                 );
                             })}
                         </div>
                     ) : (
-                        <div className="py-24 text-center bg-slate-50 rounded-[45px] border-4 border-dashed border-white italic text-slate-300 font-bold text-sm uppercase">Empty history</div>
+                        <div className="py-24 text-center bg-slate-50 rounded-[45px] border-4 border-dashed border-white italic text-slate-300 font-bold text-sm uppercase">기록이 없습니다</div>
                     )}
                 </section>
 
                 {/* 2. My Favorites - Horizontal Swipe */}
                 <section className="bg-white p-12 rounded-[56px] shadow-sm border border-slate-100">
                     <h3 className="text-2xl font-black text-slate-900 tracking-tighter flex items-center gap-4 italic mb-10">
-                        <span className="w-2 h-8 bg-rose-500 rounded-full"></span>My Favorites
+                        <span className="w-2 h-8 bg-rose-500 rounded-full"></span>내가 찜한 매물
                     </h3>
 
                     {favorites.length > 0 ? (
@@ -154,16 +151,15 @@ const MyPage = () => {
                                     <div key={idx} onClick={() => handleItemClick(fav)} className="min-w-[280px] shrink-0 snap-start p-8 bg-slate-50 hover:bg-white border border-transparent hover:border-rose-100 rounded-[45px] transition-all cursor-pointer group shadow-sm flex flex-col justify-between">
                                         <div>
                                             <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-rose-500 shadow-sm font-black mb-6 group-hover:scale-110 transition-transform">❤</div>
-                                            <h4 className="font-black text-slate-800 text-xl leading-tight mb-2 truncate italic">{fav.NAME || fav.name || `매물 #${hId}`}</h4>
-                                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest italic">{fav.PROPERTY_TYPE || "Residential"}</p>
+                                            <h4 className="font-black text-slate-800 text-xl leading-tight mb-2 truncate italic">{fav.complexName || fav.name || `매물 #${hId}`}</h4>
                                         </div>
-                                        <button onClick={(e) => handleRemoveFavorite(e, hId)} className="mt-8 text-slate-300 hover:text-rose-500 font-black text-[9px] uppercase px-8 py-3 rounded-2xl transition-all hover:bg-rose-50 border border-slate-200">Remove Item</button>
+                                        <button onClick={(e) => handleRemoveFavorite(e, hId)} className="mt-8 text-slate-300 hover:text-rose-500 font-black text-[9px] uppercase px-8 py-3 rounded-2xl transition-all hover:bg-rose-50 border border-slate-200">찜 취소</button>
                                     </div>
                                 );
                             })}
                         </div>
                     ) : (
-                        <div className="py-24 text-center bg-slate-50 rounded-[45px] border-4 border-dashed border-white italic text-slate-300 font-bold text-sm uppercase">No Favorites</div>
+                        <div className="py-24 text-center bg-slate-50 rounded-[45px] border-4 border-dashed border-white italic text-slate-300 font-bold text-sm uppercase">기록이 없습니다</div>
                     )}
                 </section>
 
@@ -172,9 +168,9 @@ const MyPage = () => {
                     <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
                     <header className="flex justify-between items-center mb-10 relative z-10">
                         <h3 className="text-2xl font-black text-white tracking-tighter flex items-center gap-4 italic">
-                            <span className="w-2 h-8 bg-blue-500 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.5)]"></span>AI History
+                            <span className="w-2 h-8 bg-blue-500 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.5)]"></span>AI 분석 기록
                         </h3>
-                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest animate-pulse">Swipe Right →</span>
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest animate-pulse">오른쪽으로 밀어서 확인 →</span>
                     </header>
 
                     {aiHistory.length > 0 ? (
@@ -191,7 +187,7 @@ const MyPage = () => {
                                         <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-2">{report.propertyType} • {formatTargetMonth(report.predictTargetMonth)}</p>
                                     </div>
                                     <div className="mt-10 pt-6 border-t border-white/5 flex justify-between items-end">
-                                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Predicted Price</span>
+                                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">AI 예측 시세</span>
                                         <div className="text-right leading-none">
                                             <span className="text-2xl font-black text-blue-400">{(report.predictedPrice || 0).toLocaleString()}</span>
                                             <span className="text-[10px] font-bold text-slate-500 ml-1 uppercase">만원</span>
@@ -201,7 +197,7 @@ const MyPage = () => {
                             ))}
                         </div>
                     ) : (
-                        <div className="py-24 text-center bg-white/5 rounded-[45px] border-4 border-dashed border-white/10 italic text-slate-600 font-bold text-sm uppercase relative z-10">No AI Reports</div>
+                        <div className="py-24 text-center bg-white/5 rounded-[45px] border-4 border-dashed border-white/10 italic text-slate-600 font-bold text-sm uppercase relative z-10">기록이 없습니다</div>
                     )}
                 </section>
             </main>

@@ -47,20 +47,20 @@ const RealPriceCalculationPage = () => {
                 sigungu: mode === 'ADDRESS' ? '' : searchParams.gugun,
                 keyword: mode === 'ADDRESS' ? keyword : '',
                 propertyType: searchParams.propertyType,
-                page: targetPage, 
+                page: targetPage,
                 size: 20
             };
-            
+
             const res = await apiClient.post('/api/price/directory', payload);
             setComplexList(res.data.content || []);
             setMolitData(prev => ({ ...prev, totalPages: res.data.totalPages }));
             setSearchParams(prev => ({ ...prev, page: targetPage }));
             setSelectedProfile(null);
-        } catch (err) { 
+        } catch (err) {
             console.error("Search Error:", err);
-            alert("데이터 로드 실패"); 
-        } finally { 
-            setIsCalculating(false); 
+            alert("데이터 로드 실패");
+        } finally {
+            setIsCalculating(false);
         }
     };
 
@@ -133,81 +133,115 @@ const RealPriceCalculationPage = () => {
         <div className="p-8 max-w-7xl mx-auto space-y-8 bg-[#F8FAFC] min-h-screen font-sans">
             {isCalculating && <div className="fixed inset-0 z-[999] bg-white/40 backdrop-blur-sm flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600"></div></div>}
 
-            <header><h1 className="text-4xl font-black text-slate-900 italic tracking-tighter uppercase">집현전 <span className="text-blue-600 text-sm font-light ml-1">PRICE ANALYSIS</span></h1></header>
+            <header className="mb-14"><h1 className="text-4xl font-black text-slate-900 italic tracking-tighter uppercase">주거용 정밀분석 <span className="text-blue-600 text-sm font-light ml-1">원하는 매물의 실거래가 추이와 AI 예측 시세를 분석하여 최적의 거래 가치를 정밀 진단합니다.</span></h1></header>
 
-            <main className="grid grid-cols-12 gap-8 bg-white p-10 rounded-[45px] shadow-2xl border border-slate-100">
-                {/* 구역 1: 주소 직접 검색 (전 지역 대상) */}
-                <div className="col-span-5 space-y-3 pr-8 border-r border-slate-100">
-                    <label className="text-[10px] font-black text-blue-600 uppercase flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 bg-blue-600 rounded-full"></span> Address Search
+            <main className="bg-white p-12 rounded-[50px] shadow-2xl border border-slate-100 space-y-10">
+                {/* 01. 주소 직접 검색 구역 */}
+                <div 
+                    className={`space-y-4 transition-all duration-300 cursor-pointer p-4 rounded-[30px] ${activeMode === 'FILTER' ? 'opacity-30 grayscale' : 'bg-blue-50/30'}`}
+                    onClick={() => setActiveMode('ADDRESS')}
+                >
+                    <label className="text-[11px] font-black text-blue-600 uppercase flex items-center gap-2 tracking-widest">
+                        <span className="w-2 h-2 bg-blue-600 rounded-full"></span> 01. 주소로 직접 검색
                     </label>
-                    <div className="relative group">
-                        <input 
-                            className="w-full bg-slate-50 p-5 pr-16 rounded-[24px] font-bold border-2 border-transparent focus:border-blue-500 focus:bg-white transition-all shadow-inner" 
-                            placeholder="도로명 주소 또는 단지명 입력" 
-                            value={keyword} 
+                    <div className="relative max-w-4xl">
+                        <input
+                            className={`w-full bg-slate-50 p-6 pr-20 rounded-[30px] font-bold text-lg border-2 border-transparent focus:border-blue-500 focus:bg-white transition-all shadow-inner ${activeMode === 'FILTER' ? 'pointer-events-none' : ''}`}
+                            placeholder="도로명 주소 또는 단지명을 입력하세요"
+                            value={keyword}
                             onChange={e => setKeyword(e.target.value)}
                             onKeyDown={e => e.key === 'Enter' && handleSearch('ADDRESS')}
                         />
-                        <button 
-                            onClick={() => handleSearch('ADDRESS')}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 bg-blue-600 text-white p-3 rounded-2xl shadow-lg hover:bg-blue-700 hover:scale-105 transition-all"
+                        <button
+                            onClick={(e) => { e.stopPropagation(); handleSearch('ADDRESS'); }}
+                            disabled={activeMode === 'FILTER'}
+                            className="absolute right-3 top-3 bottom-3 px-10 bg-blue-600 text-white rounded-[24px] font-black hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50 shadow-xl flex items-center gap-2"
                         >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            매물 찾기
                         </button>
                     </div>
-                    <p className="text-[9px] text-slate-400 font-medium ml-2 italic">※ 주소를 정확히 입력할수록 정확한 매물을 찾습니다.</p>
                 </div>
 
-                {/* 구역 2: 지역 및 유형 필터 (특정 지역 대상) */}
-                <div className="col-span-7 space-y-3 pl-4">
-                    <label className="text-[10px] font-black text-slate-400 uppercase flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 bg-slate-300 rounded-full"></span> Regional Filter
+                {/* 구분선 */}
+                <div className="relative flex items-center py-2">
+                    <div className="flex-grow border-t border-slate-100"></div>
+                    <span className="flex-none mx-4 text-[10px] font-black text-slate-300 tracking-widest bg-white px-4 py-1 rounded-full border border-slate-100">OR</span>
+                    <div className="flex-grow border-t border-slate-100"></div>
+                </div>
+
+                {/* 02. 지역 필터 구역 */}
+                <div 
+                    className={`space-y-4 transition-all duration-300 cursor-pointer p-4 rounded-[30px] ${activeMode === 'ADDRESS' ? 'opacity-30 grayscale' : 'bg-blue-50/30'}`}
+                    onClick={() => setActiveMode('FILTER')}
+                >
+                    <label className={`text-[11px] font-black uppercase flex items-center gap-2 tracking-widest transition-colors ${activeMode === 'FILTER' ? 'text-blue-600' : 'text-slate-500'}`}>
+                        <span className={`w-2 h-2 rounded-full transition-colors ${activeMode === 'FILTER' ? 'bg-blue-600' : 'bg-slate-300'}`}></span> 02. 지역 및 유형으로 필터링
                     </label>
-                    <div className="grid grid-cols-12 gap-3 items-end">
-                        <div className="col-span-4">
-                            <select className="w-full bg-slate-50 p-5 rounded-[24px] font-bold text-sm border-none cursor-pointer hover:bg-slate-100 transition-all shadow-inner" value={searchParams.gugun} onChange={e => setSearchParams({ ...searchParams, gugun: e.target.value })}>
-                                {REGION_MAP[searchParams.sido].map(g => <option key={g} value={g}>{g}</option>)}
-                            </select>
+                    <div className={`flex flex-wrap gap-3 items-center ${activeMode === 'ADDRESS' ? 'pointer-events-none' : ''}`}>
+                        {/* 시도 선택 */}
+                        <select
+                            className="bg-white p-5 rounded-[24px] font-bold border-none shadow-sm cursor-pointer hover:bg-slate-100 transition-colors min-w-[160px]"
+                            value={searchParams.sido}
+                            onChange={e => {
+                                const newSido = e.target.value;
+                                setSearchParams({ ...searchParams, sido: newSido, gugun: REGION_MAP[newSido]?.[0] || '' });
+                            }}
+                        >
+                            {Object.keys(REGION_MAP).map(sido => <option key={sido} value={sido}>{sido}</option>)}
+                        </select>
+
+                        {/* 구군 선택 */}
+                        <select
+                            className="bg-white p-5 rounded-[24px] font-bold border-none shadow-sm cursor-pointer hover:bg-slate-100 transition-colors min-w-[160px]"
+                            value={searchParams.gugun}
+                            onChange={e => setSearchParams({ ...searchParams, gugun: e.target.value })}
+                        >
+                            {REGION_MAP[searchParams.sido]?.map(g => <option key={g} value={g}>{g}</option>)}
+                        </select>
+
+                        {/* 매물 유형 */}
+                        <div className="flex bg-white p-1.5 rounded-[26px] border border-slate-100 shadow-sm">
+                            {['아파트', '오피스텔', '연립다세대'].map(type => (
+                                <button
+                                    key={type}
+                                    onClick={(e) => { e.stopPropagation(); setSearchParams({ ...searchParams, propertyType: type }); }}
+                                    className={`px-7 py-3 rounded-[20px] font-black text-sm transition-all ${searchParams.propertyType === type ? 'bg-blue-600 text-white shadow-md scale-105' : 'text-slate-400 hover:text-slate-600'}`}
+                                >
+                                    {type === '연립다세대' ? '빌라/다세대' : type}
+                                </button>
+                            ))}
                         </div>
-                        <div className="col-span-4">
-                            <select className="w-full bg-slate-50 p-5 rounded-[24px] font-bold text-sm border-none cursor-pointer hover:bg-slate-100 transition-all shadow-inner" value={searchParams.propertyType} onChange={e => setSearchParams({ ...searchParams, propertyType: e.target.value })}>
-                                <option value="아파트">아파트</option>
-                                <option value="연립다세대">빌라(다세대)</option>
-                            </select>
-                        </div>
-                        <div className="col-span-4">
-                            <button 
-                                onClick={() => handleSearch('FILTER')} 
-                                className="w-full h-[60px] bg-slate-900 text-white p-4 rounded-[24px] font-black shadow-xl hover:bg-slate-800 active:scale-95 transition-all flex items-center justify-center gap-2"
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M3 4.5h18m-18 5h18m-18 5h18m-18 5h18" /></svg>
-                                필터 조회
-                            </button>
-                        </div>
+
+                        <button
+                            onClick={(e) => { e.stopPropagation(); handleSearch('FILTER'); }}
+                            className="px-10 py-5 bg-blue-600 text-white rounded-[24px] font-black shadow-xl hover:bg-blue-700 transition-all active:scale-95 flex items-center gap-2"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            조건으로 조회
+                        </button>
                     </div>
-                    <p className="text-[9px] text-slate-400 font-medium ml-2 italic">※ 지역과 유형을 선택하여 목록을 불러옵니다.</p>
                 </div>
             </main>
 
             <div className="grid lg:grid-cols-12 gap-10">
                 {/* 좌측 리스트 */}
                 <aside className="lg:col-span-4 bg-white rounded-[45px] shadow-sm border border-slate-200 h-[750px] flex flex-col overflow-hidden">
-                    <div className="p-8 bg-slate-50 border-b font-black text-slate-800 text-xs">PROPERTY DIRECTORY</div>
+                    <div className="p-8 bg-slate-50 border-b font-black text-slate-800 text-xs tracking-widest">03. 분석 대상 매물 목록</div>
                     <div className="flex-grow overflow-y-auto custom-scrollbar">
                         {complexList.map((item, idx) => (
                             <div key={idx} onClick={() => handleComplexClick(item)} className={`p-8 border-b border-slate-50 hover:bg-blue-50/50 cursor-pointer transition-all ${selectedProfile?.houseId === (item.representativeHouseId || item.houseId) ? 'bg-blue-50/80 ring-1 ring-inset ring-blue-500' : ''}`}>
                                 <h4 className="font-black text-slate-900 truncate">{item.complexName || item.roadAddress}</h4>
                                 <p className="text-[11px] text-slate-400 font-bold mt-1 truncate">{item.roadAddress}</p>
-                                <div className="mt-4 flex justify-between items-center"><span className="text-[10px] text-slate-400 font-black italic">{item.totalTransactions || 1}건 거래 기록</span><span className="text-blue-600 text-[10px] font-black">Analyze →</span></div>
+                                <div className="mt-4 flex justify-between items-center"><span className="text-[10px] text-slate-400 font-black italic">{item.totalTransactions || 1}건 거래 기록</span><span className="text-blue-600 text-[10px] font-black">정밀 분석 →</span></div>
                             </div>
                         ))}
                     </div>
                     {molitData.totalPages > 1 && (
                         <div className="p-4 bg-slate-50 border-t flex justify-between items-center px-8">
-                            <button disabled={searchParams.page === 0} onClick={() => handleSearch(activeMode, searchParams.page - 1)} className="text-xs font-black disabled:opacity-20">PREV</button>
+                            <button disabled={searchParams.page === 0} onClick={() => handleSearch(activeMode, searchParams.page - 1)} className="text-xs font-black disabled:opacity-20">이전</button>
                             <span className="text-[10px] font-bold text-slate-400">{searchParams.page + 1} / {molitData.totalPages}</span>
-                            <button disabled={searchParams.page + 1 >= molitData.totalPages} onClick={() => handleSearch(activeMode, searchParams.page + 1)} className="text-xs font-black disabled:opacity-20">NEXT</button>
+                            <button disabled={searchParams.page + 1 >= molitData.totalPages} onClick={() => handleSearch(activeMode, searchParams.page + 1)} className="text-xs font-black disabled:opacity-20">다음</button>
                         </div>
                     )}
                 </aside>
@@ -227,8 +261,11 @@ const RealPriceCalculationPage = () => {
                                             {isLiked ? '❤️' : '🤍'}
                                         </button>
                                         <div>
-                                            <h2 className="text-4xl font-black text-slate-900 tracking-tighter italic">{selectedProfile.complexName}</h2>
-                                            <p className="text-slate-400 font-bold text-xs mt-2 uppercase">{selectedProfile.roadAddress}</p>
+                                            <div className="flex items-center gap-3 mb-1">
+                                                <span className="bg-slate-900 text-white px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter">Official Profile</span>
+                                                <h2 className="text-4xl font-black text-slate-900 tracking-tighter italic">{selectedProfile.complexName}</h2>
+                                            </div>
+                                            <p className="text-slate-400 font-bold text-xs uppercase">{selectedProfile.roadAddress}</p>
                                         </div>
                                     </div>
                                     {getRiskBadge(selectedProfile.riskLevel)}
@@ -236,15 +273,15 @@ const RealPriceCalculationPage = () => {
 
                                 <div className="grid grid-cols-3 gap-6">
                                     <div className="bg-slate-50 p-8 rounded-[40px] text-center">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase mb-2">Latest Trade</p>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase mb-2">최근 실거래가</p>
                                         <p className="text-3xl font-black text-[#002855]">{selectedProfile.latestTradePrice > 0 ? selectedProfile.latestTradePrice.toLocaleString() : '최근 거래 없음'}</p>
                                     </div>
                                     <div className="bg-slate-50 p-8 rounded-[40px] text-center">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase mb-2 tracking-tighter">Jeonse Ratio</p>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase mb-2 tracking-tighter">전세가율</p>
                                         <p className="text-3xl font-black text-slate-800">{selectedProfile.jeonseRatio?.toFixed(1) || 0}%</p>
                                     </div>
                                     <div className="bg-slate-900 p-8 rounded-[40px] text-center text-white shadow-2xl">
-                                        <p className="text-[10px] font-black text-blue-400 uppercase mb-2">AI Forecast</p>
+                                        <p className="text-[10px] font-black text-blue-400 uppercase mb-2">AI 예측 시세</p>
                                         <p className="text-2xl font-black">{selectedProfile.aiPredictedPrice ? selectedProfile.aiPredictedPrice.toLocaleString() : '-'}</p>
                                     </div>
                                 </div>
@@ -252,7 +289,7 @@ const RealPriceCalculationPage = () => {
 
                             <section className="bg-white p-12 rounded-[56px] shadow-sm border border-slate-100">
                                 <div className="flex justify-between items-center mb-10">
-                                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">Regional Market Trend (3.3㎡ Avg)</h3>
+                                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">Regional Market Trend (지역 시장 가격 추이)</h3>
                                     <p className="text-[9px] font-bold text-blue-500 bg-blue-50 px-3 py-1 rounded-full uppercase">※ {searchParams.gugun} 전체 평균 데이터</p>
                                 </div>
                                 <div className="h-[350px] w-full">
@@ -293,7 +330,7 @@ const RealPriceCalculationPage = () => {
                         </div>
                     ) : (
                         <div className="h-full flex items-center justify-center p-20 text-center opacity-30 grayscale italic font-black text-slate-300 uppercase tracking-widest leading-loose">
-                            Select a property from the directory <br /> to generate market report
+                            분석할 매물을 목록에서 선택하여 <br /> 리포트를 생성하세요.
                         </div>
                     )}
                 </main>

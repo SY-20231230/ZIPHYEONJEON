@@ -19,15 +19,15 @@ const DONG_MAP = {
 };
 
 const JeonseRiskAnalysisPage = () => {
-    const [inputs, setInputs] = useState({ 
+    const [inputs, setInputs] = useState({
         sido: '서울특별시',
         gugun: '동작구',
         dong: '상도동',
-        exclusiveArea: '84', 
-        myJeonsePrice: '55000', 
-        propertyType: '아파트' 
+        exclusiveArea: '84',
+        myJeonsePrice: '55000',
+        propertyType: '아파트'
     });
-    
+
     const [result, setResult] = useState(null);
     const [loading, setLoading] = useState(false);
 
@@ -43,13 +43,13 @@ const JeonseRiskAnalysisPage = () => {
      */
     const handleCheck = async () => {
         if (!inputs.exclusiveArea || !inputs.myJeonsePrice) return alert("필수 정보를 입력해주세요.");
-        
+
         setLoading(true);
         try {
             // [💡 핵심 수정] 백엔드 DB 컬럼(SIGUNGU, EMD)에 '서울특별시'가 없으므로 제외하고 전송
             // '동작구 상도동' 형식은 백엔드의 LIKE %?% 쿼리에서 가장 높은 매칭률을 보입니다.
             const formattedPayload = {
-                address: `${inputs.gugun} ${inputs.dong}`, 
+                address: `${inputs.gugun} ${inputs.dong}`,
                 exclusiveArea: Number(inputs.exclusiveArea), // 숫자로 확실히 변환
                 myJeonsePrice: Number(inputs.myJeonsePrice), // 숫자로 확실히 변환
                 propertyType: inputs.propertyType
@@ -58,7 +58,7 @@ const JeonseRiskAnalysisPage = () => {
             console.log("전송 데이터(Payload):", formattedPayload); // 디버깅용 로그
 
             const data = await riskService.checkRisk(formattedPayload);
-            setResult(data); 
+            setResult(data);
         } catch (err) {
             console.error("통신 에러:", err);
             alert("서버 분석 엔진과 연결할 수 없습니다.");
@@ -69,12 +69,7 @@ const JeonseRiskAnalysisPage = () => {
 
     return (
         <div className="max-w-6xl mx-auto p-10 font-sans">
-            <header className="mb-12">
-                <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic">JEONSE RISK REPORT</h1>
-                <p className="text-slate-400 mt-2 font-bold text-xs uppercase tracking-widest leading-loose">
-                    {inputs.sido} {inputs.gugun} {inputs.dong} 지역 정밀 분석 엔진 가동 중
-                </p>
-            </header>
+            <header className="mb-14"><h1 className="text-4xl font-black text-slate-900 italic tracking-tighter uppercase">전세가율 및 위험도 분석 <span className="text-blue-600 text-sm font-light ml-1">입력하신 희망 전세가와 해당 지역의 실거래가를 분석하여 보증금의 안전성과 전세 사기 위험도를 정밀 진단합니다.</span></h1></header>
 
             <div className="grid grid-cols-12 gap-10">
                 {/* 입력 섹션 */}
@@ -82,10 +77,10 @@ const JeonseRiskAnalysisPage = () => {
                     <div className="space-y-4">
                         <label className="text-[10px] font-black text-blue-600 uppercase ml-1">Area Location</label>
                         <div className="grid grid-cols-2 gap-2">
-                            <select className="bg-slate-50 p-4 rounded-2xl font-bold text-sm border-none" value={inputs.gugun} onChange={e => setInputs({...inputs, gugun: e.target.value, dong: DONG_MAP[e.target.value]?.[0] || ''})}>
+                            <select className="bg-slate-50 p-4 rounded-2xl font-bold text-sm border-none" value={inputs.gugun} onChange={e => setInputs({ ...inputs, gugun: e.target.value, dong: DONG_MAP[e.target.value]?.[0] || '' })}>
                                 {GUGUN_MAP[inputs.sido].map(g => <option key={g} value={g}>{g}</option>)}
                             </select>
-                            <select className="bg-slate-50 p-4 rounded-2xl font-bold text-sm border-none" value={inputs.dong} onChange={e => setInputs({...inputs, dong: e.target.value})}>
+                            <select className="bg-slate-50 p-4 rounded-2xl font-bold text-sm border-none" value={inputs.dong} onChange={e => setInputs({ ...inputs, dong: e.target.value })}>
                                 {DONG_MAP[inputs.gugun]?.map(d => <option key={d} value={d}>{d}</option>)}
                             </select>
                         </div>
@@ -94,11 +89,11 @@ const JeonseRiskAnalysisPage = () => {
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Area (㎡)</label>
-                            <input type="number" className="w-full p-4 bg-slate-50 rounded-2xl font-bold text-sm border-none" value={inputs.exclusiveArea} onChange={e => setInputs({...inputs, exclusiveArea: e.target.value})} />
+                            <input type="number" className="w-full p-4 bg-slate-50 rounded-2xl font-bold text-sm border-none" value={inputs.exclusiveArea} onChange={e => setInputs({ ...inputs, exclusiveArea: e.target.value })} />
                         </div>
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Type</label>
-                            <select className="w-full p-4 bg-slate-50 rounded-2xl font-bold text-sm border-none" value={inputs.propertyType} onChange={e => setInputs({...inputs, propertyType: e.target.value})}>
+                            <select className="w-full p-4 bg-slate-50 rounded-2xl font-bold text-sm border-none" value={inputs.propertyType} onChange={e => setInputs({ ...inputs, propertyType: e.target.value })}>
                                 <option value="아파트">아파트</option>
                                 <option value="오피스텔">오피스텔</option>
                                 <option value="연립다세대">빌라/다세대</option>
@@ -108,7 +103,7 @@ const JeonseRiskAnalysisPage = () => {
 
                     <div className="space-y-2">
                         <label className="text-[10px] font-black text-slate-400 uppercase ml-1">Desired Price (만원)</label>
-                        <input type="number" className="w-full p-4 bg-slate-50 rounded-2xl font-bold text-sm border-none" value={inputs.myJeonsePrice} onChange={e => setInputs({...inputs, myJeonsePrice: e.target.value})} />
+                        <input type="number" className="w-full p-4 bg-slate-50 rounded-2xl font-bold text-sm border-none" value={inputs.myJeonsePrice} onChange={e => setInputs({ ...inputs, myJeonsePrice: e.target.value })} />
                     </div>
 
                     <button onClick={handleCheck} disabled={loading} className="w-full py-5 bg-blue-600 text-white font-black rounded-[24px] shadow-lg hover:bg-blue-700 active:scale-95 transition-all">
@@ -125,7 +120,7 @@ const JeonseRiskAnalysisPage = () => {
                                     Level: {riskStyles[result.riskLevel]?.label || '분석 중'}
                                 </span>
                                 <h2 className="text-7xl font-black text-slate-900 mt-6 tracking-tighter">
-                                    {result.myJeonseRatio ? result.myJeonseRatio.toFixed(1) : 0}<span className="text-2xl ml-1 text-slate-300">%</span>
+                                    {result.myJeonseRatio || 0}<span className="text-2xl ml-1 text-slate-300">%</span>
                                 </h2>
                                 <p className="text-slate-400 font-bold text-[10px] mt-2 uppercase tracking-widest italic">Current Jeonse to Price Ratio</p>
                             </div>

@@ -168,15 +168,27 @@ public interface HouseRepository extends JpaRepository<House, Long> {
                         "FROM House h " +
                         "WHERE h.sigungu LIKE CONCAT(:sigungu, '%') " +
                         "AND (:dong IS NULL OR :dong = '' OR h.emd LIKE %:dong% OR h.sigungu LIKE %:dong%) " +
-                        "AND (:keyword IS NULL OR :keyword = '' OR h.roadname LIKE %:keyword% OR h.name LIKE %:keyword%) "
-                        +
+                        "AND (" +
+                        "  (:keyword IS NULL OR :keyword = '' OR h.name LIKE %:keyword% OR h.roadname LIKE %:keyword%) " +
+                        "  OR (:roadName IS NOT NULL AND :roadName <> '' AND h.roadname LIKE %:roadName%) " +
+                        "  OR (:buildNum IS NOT NULL AND :buildNum <> '' AND h.roadname LIKE %:buildNum%)" +
+                        ") " +
                         "AND (:propertyType IS NULL OR :propertyType = '' OR h.propertyType = :propertyType) " +
                         "GROUP BY h.sigungu, h.emd, h.name, h.roadname, h.propertyType " +
-                        "ORDER BY MAX(h.contractYm) DESC, MAX(h.houseId) DESC")
+                        "ORDER BY " +
+                        "  CASE " +
+                        "    WHEN (:keyword IS NOT NULL AND h.name LIKE %:keyword% AND h.roadname LIKE %:keyword%) THEN 0 " +
+                        "    WHEN (:roadName IS NOT NULL AND :roadName <> '' AND h.roadname LIKE %:roadName% AND :buildNum IS NOT NULL AND :buildNum <> '' AND h.roadname LIKE %:buildNum%) THEN 1 " +
+                        "    WHEN (:roadName IS NOT NULL AND :roadName <> '' AND h.roadname LIKE %:roadName%) THEN 2 " +
+                        "    WHEN (:buildNum IS NOT NULL AND :buildNum <> '' AND h.roadname LIKE %:buildNum%) THEN 3 " +
+                        "    ELSE 4 END ASC, " +
+                        "  MAX(h.contractYm) DESC, MAX(h.houseId) DESC")
         Page<Object[]> findPropertyDirectory(
                         @Param("sigungu") String sigungu,
                         @Param("dong") String dong,
                         @Param("keyword") String keyword,
+                        @Param("roadName") String roadName,
+                        @Param("buildNum") String buildNum,
                         @Param("propertyType") String propertyType,
                         Pageable pageable);
 

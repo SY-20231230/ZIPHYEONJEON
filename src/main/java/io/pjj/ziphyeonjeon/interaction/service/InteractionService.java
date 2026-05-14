@@ -27,7 +27,7 @@ public class InteractionService {
     @Transactional
     public boolean toggleLike(Long userId, Long houseId, String name) {
         Optional<Likes> existingLike = likesRepository.findByUserIdAndHouseId(userId, houseId);
-        
+
         if (existingLike.isPresent()) {
             // 이미 찜 상태면 삭제 (하트 해제)
             likesRepository.delete(existingLike.get());
@@ -59,7 +59,7 @@ public class InteractionService {
     @Transactional
     public Records addViewRecord(Long userId, Long houseId) {
         Optional<Records> existingRecord = recordsRepository.findByUserIdAndHouseId(userId, houseId);
-        
+
         if (existingRecord.isPresent()) {
             // 이미 본 기록이 있으면 시간만 최근으로 업데이트
             Records record = existingRecord.get();

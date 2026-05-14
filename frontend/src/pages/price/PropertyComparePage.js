@@ -23,8 +23,8 @@ const PropertyComparePage = () => {
                 const extract = (res) => res.data?.data || res.data || (Array.isArray(res) ? res : []);
                 
                 setQuickTags({
-                    liked: extract(likes).slice(0, 3),
-                    recent: extract(records).slice(0, 3)
+                    liked: extract(likes).slice(0, 5),
+                    recent: extract(records).slice(0, 5)
                 });
             } catch (err) {
                 console.error("퀵 태그 데이터 로딩 실패:", err);
@@ -58,6 +58,13 @@ const PropertyComparePage = () => {
                 transaction_type: d.propertyType || d.PROPERTY_TYPE || '아파트',
                 targetPrice: '' 
             };
+
+            // [추가] 비교 대상 선택 시 방문 기록 최신화 (백엔드 기존 로직 활용)
+            try {
+                await interactionService.addRecentRecord(hId);
+            } catch (recordErr) {
+                console.warn("방문 기록 갱신 실패:", recordErr);
+            }
 
             // 3. 순차적으로 빈 슬롯 찾기
             const emptyIdx = targets.findIndex(t => !t.address);
@@ -145,10 +152,7 @@ const PropertyComparePage = () => {
 
     return (
         <div className="p-8 max-w-7xl mx-auto space-y-8 bg-[#F8FAFC] min-h-screen font-sans">
-            <header className="mb-10 text-center">
-                <h1 className="text-4xl font-black text-[#002855] tracking-tighter italic">PROPERTY <span className="text-blue-500 font-light">COMPARE</span></h1>
-                <p className="text-slate-500 mt-2 text-sm font-bold">관심 있는 매물들을 나란히 두고 객관적인 데이터를 바탕으로 비교 분석하세요.</p>
-            </header>
+            <header><h1 className="text-4xl font-black text-slate-900 italic tracking-tighter uppercase">다중 매물 비교 <span className="text-blue-600 text-sm font-light ml-1">관심 있는 매물들을 나란히 두고 객관적인 데이터를 바탕으로 비교 분석하세요.</span></h1></header>
 
             <div className="bg-white p-8 md:p-10 rounded-[40px] shadow-xl border border-slate-100 mb-8">
                 <div className="flex justify-between items-center mb-6">
@@ -164,7 +168,7 @@ const PropertyComparePage = () => {
                         <div className="flex items-center gap-3 mb-5 relative z-10">
                             <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center text-rose-500 shadow-sm font-black border border-rose-50">❤️</div>
                             <div>
-                                <span className="text-[10px] font-black text-rose-400 uppercase tracking-[0.2em] block">My Favorites</span>
+                                <span className="text-[10px] font-black text-rose-400 uppercase tracking-[0.2em] block">Favorites</span>
                                 <span className="text-sm font-black text-slate-700">찜한 매물</span>
                             </div>
                         </div>
@@ -193,7 +197,7 @@ const PropertyComparePage = () => {
                         <div className="flex items-center gap-3 mb-5 relative z-10">
                             <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center text-blue-500 shadow-sm font-black border border-blue-50">🕒</div>
                             <div>
-                                <span className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] block">Recently Viewed</span>
+                                <span className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] block">History</span>
                                 <span className="text-sm font-black text-slate-700">최근 본 매물</span>
                             </div>
                         </div>
@@ -224,7 +228,7 @@ const PropertyComparePage = () => {
                                 {idx + 1}
                             </div>
                             <div className="w-full md:w-1/4">
-                                <label className="text-[9px] font-black text-blue-600 uppercase ml-2">Type</label>
+                                <label className="text-[9px] font-black text-blue-600 uppercase ml-2">매물 유형</label>
                                 <select value={target.transaction_type} onChange={e => handleTargetChange(idx, 'transaction_type', e.target.value)} className="w-full bg-white p-3 rounded-xl font-bold border-none text-sm shadow-sm focus:ring-2 focus:ring-blue-500">
                                     <option value="아파트">아파트</option>
                                     <option value="연립다세대">빌라</option>
@@ -232,12 +236,12 @@ const PropertyComparePage = () => {
                                 </select>
                             </div>
                             <div className="w-full md:w-2/4">
-                                <label className="text-[9px] font-black text-blue-600 uppercase ml-2">Address (동 포함)</label>
+                                <label className="text-[9px] font-black text-blue-600 uppercase ml-2">주소 (도로명 또는 동+지번)</label>
                                 <input value={target.address} onChange={e => handleTargetChange(idx, 'address', e.target.value)} placeholder="예: 서울특별시 동작구 상도동" className="w-full bg-white p-3 rounded-xl font-bold border-none text-sm shadow-sm focus:ring-2 focus:ring-blue-500" />
                             </div>
                             <div className="w-full md:w-1/4">
                                 <div className="flex justify-between items-center ml-2">
-                                    <label className="text-[9px] font-black text-blue-600 uppercase">Area (㎡)</label>
+                                    <label className="text-[9px] font-black text-blue-600 uppercase">전용면적 (㎡)</label>
                                     {target.area_m2 && (
                                         <span className="text-[9px] font-black text-slate-400">≈ {(target.area_m2 * 0.3025).toFixed(1)}평</span>
                                     )}
@@ -245,7 +249,7 @@ const PropertyComparePage = () => {
                                 <input type="number" value={target.area_m2} onChange={e => handleTargetChange(idx, 'area_m2', e.target.value)} placeholder="84" className="w-full bg-white p-3 rounded-xl font-bold border-none text-sm shadow-sm focus:ring-2 focus:ring-blue-500" />
                             </div>
                             <div className="w-full md:w-1/4">
-                                <label className="text-[9px] font-black text-slate-400 uppercase ml-2">Target Price (옵션)</label>
+                                <label className="text-[9px] font-black text-slate-400 uppercase ml-2">목표가 (옵션)</label>
                                 <input type="number" value={target.targetPrice} onChange={e => handleTargetChange(idx, 'targetPrice', e.target.value)} placeholder="예: 120000" className="w-full bg-white p-3 rounded-xl font-bold border-none text-sm shadow-sm focus:ring-2 focus:ring-slate-300" />
                             </div>
                             {targets.length > 2 && (
@@ -270,7 +274,7 @@ const PropertyComparePage = () => {
 
             {results.length > 0 && (
                 <div className="bg-white p-8 md:p-12 rounded-[40px] shadow-xl border border-slate-100 animate-in fade-in slide-in-from-bottom-8">
-                    <h2 className="text-2xl font-black text-[#002855] mb-8 italic">BATTLE BOARD</h2>
+                    <h2 className="text-2xl font-black text-slate-900 mb-8 italic">비교 분석 결과</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                         {results.map((res, idx) => (
                             <div key={idx} className="bg-slate-50 border border-slate-200 rounded-3xl p-6 flex flex-col justify-between hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
@@ -278,7 +282,7 @@ const PropertyComparePage = () => {
                                 
                                 <div>
                                     <div className="flex justify-between items-start mb-4">
-                                        <span className="bg-[#002855] text-white text-[10px] px-3 py-1 rounded-full font-black uppercase">Target {idx + 1}</span>
+                                        <span className="bg-[#002855] text-white text-[10px] px-3 py-1 rounded-full font-black uppercase">비교 대상 {idx + 1}</span>
                                         <span className="text-[10px] font-bold text-slate-400">{res.propertyType}</span>
                                     </div>
                                     <h3 className="font-black text-slate-800 text-sm mb-1 leading-snug h-10 overflow-hidden">{res.address}</h3>
@@ -289,12 +293,12 @@ const PropertyComparePage = () => {
                                     
                                     <div className="space-y-4">
                                         <div className="bg-white p-3 rounded-xl shadow-sm border border-slate-100">
-                                            <p className="text-[9px] font-black text-blue-500 uppercase">Average Market Price</p>
+                                            <p className="text-[9px] font-black text-blue-500 uppercase">주변 평균 시세</p>
                                             <p className="font-black text-lg text-slate-900">{res.averageMarketPrice ? res.averageMarketPrice.toLocaleString() : '-'} <span className="text-[10px] text-slate-500">만원</span></p>
                                         </div>
                                         {res.targetPrice > 0 && (
                                             <div className="bg-white p-3 rounded-xl shadow-sm border border-slate-100">
-                                                <p className="text-[9px] font-black text-slate-400 uppercase">Target Price</p>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase">나의 목표가</p>
                                                 <p className="font-black text-md text-slate-700">{res.targetPrice.toLocaleString()} <span className="text-[10px] text-slate-500">만원</span></p>
                                             </div>
                                         )}

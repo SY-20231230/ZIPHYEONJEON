@@ -893,9 +893,25 @@ public class PriceSearchService {
         String dong = request.getDong();
         String propertyType = request.getPropertyType();
         String keyword = request.getKeyword();
+        String buildNum = null;
+        String roadName = null;
 
-        // [P-009-UP] 주소 정규화 로직: 키워드가 주소 형태일 때 V-World를 통해 검색어 보정
-        if (keyword != null && keyword.trim().length() > 2) {
+        // [P-009-UP] 주소 지능형 파싱 및 숫자 추출
+        if (keyword != null && keyword.trim().length() >= 2) {
+            String trimmedKeyword = keyword.trim();
+
+            // 1. 건물번호 추출 (끝자리의 숫자)
+            java.util.regex.Matcher buildNumMatcher = java.util.regex.Pattern.compile(".*\\s(\\d+)$").matcher(trimmedKeyword);
+            if (buildNumMatcher.find()) {
+                buildNum = buildNumMatcher.group(1);
+            }
+
+            // 2. 도로명 추출 ('로' 혹은 '길'로 끝나는 단어)
+            java.util.regex.Matcher roadNameMatcher = java.util.regex.Pattern.compile("([가-힣a-zA-Z0-9]+[로길])").matcher(trimmedKeyword);
+            if (roadNameMatcher.find()) {
+                roadName = roadNameMatcher.group(1);
+            }
+
             try {
                 io.pjj.ziphyeonjeon.global.API.vworld.dto.search.VworldSearchResponse vres = vworldSearchClient
                         .searchJuso(keyword);
@@ -908,16 +924,8 @@ public class PriceSearchService {
                     String roadAddr = (firstItem.address != null) ? firstItem.address.road : null;
 
                     if (roadAddr != null) {
-                        // 도로명 추출 (예: "상도로")
-                        String normalizedRoad = parseRoadName(roadAddr);
-                        if (normalizedRoad != null) {
-                            keyword = normalizedRoad;
-                        }
-
-                        // [Fix] 지역 정보 보충 로직 삭제: DB 데이터 포맷(은평구 vs 서울시 은평구) 불일치로 인한 검색 실패 방지
-
-                        log.info("Address normalized: '{}' -> keyword: '{}'",
-                                request.getKeyword(), keyword);
+                        log.info("Address normalization suggested: '{}' -> '{}'",
+                                request.getKeyword(), roadAddr);
                     }
                 }
             } catch (Exception e) {
@@ -929,7 +937,7 @@ public class PriceSearchService {
                 request.getPage(), request.getSize());
 
         org.springframework.data.domain.Page<Object[]> pageResult = houseRepo.findPropertyDirectory(
-                sigungu, dong, keyword, propertyType, pageable);
+                sigungu, dong, keyword, roadName, buildNum, propertyType, pageable);
 
         return pageResult.map(row -> io.pjj.ziphyeonjeon.PriceSearch.dto.response.PropertyDirectoryResponse.builder()
                 .representativeHouseId((Long) row[0])
