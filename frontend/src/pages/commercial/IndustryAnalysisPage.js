@@ -17,23 +17,52 @@ const IndustryAnalysisPage = () => {
     const [currentPage, setCurrentPage] = useState(0);
     const itemsPerPage = 10;
 
+    // [추가] 모달 제어 및 에러 메시지 상태
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [searchError, setSearchError] = useState('');
+
     // 2. 초기 로드 및 검색
     useEffect(() => {
         handleSearch("역삼1동");
     }, []);
 
     const handleSearch = async (term = searchTerm) => {
-        const target = term.trim() || "역삼1동";
+        const target = (typeof term === 'string' ? term : searchTerm).trim();
+
+        // 1. 입력값 검증 (유동인구 페이지와 동일한 기준 적용)
+        if (!target) {
+            setSearchError("조회할 행정동명을 입력해 주세요.");
+            setIsModalOpen(true);
+            return;
+        }
+
+        const isNotDong = target.endsWith('시') || target.endsWith('구') || !target.endsWith('동');
+        if (isNotDong) {
+            setSearchError("상세 행정동 명칭을 입력해 주세요. (예: 역삼1동)\n'시' 또는 '구' 단위는 조회가 불가능합니다.");
+            setIsModalOpen(true);
+            return;
+        }
+
         setIsLoading(true);
+        setSearchError('');
         setCurrentPage(0);
+
         try {
             const res = await apiClient.get('/api/industry/code', {
                 params: { address: target }
             });
-            setIndustryData(res.data || []);
-            setSelectedArea(target);
+
+            if (res.data && res.data.length > 0) {
+                setIndustryData(res.data);
+                setSelectedArea(target);
+            } else {
+                setSearchError("해당 지역의 데이터를 찾을 수 없습니다.");
+                setIsModalOpen(true);
+            }
         } catch (error) {
             console.error("데이터 조회 실패:", error);
+            setSearchError("데이터 조회 중 오류가 발생했습니다.");
+            setIsModalOpen(true);
         } finally {
             setIsLoading(false);
         }
@@ -332,7 +361,7 @@ const IndustryAnalysisPage = () => {
                                         <YAxis type="number" dataKey="y" hide domain={chartDomain} />
                                         <ZAxis type="number" dataKey="z" range={[600, 7000]} />
                                         <Tooltip content={<CustomTooltip />} />
-                                        
+
                                         {/* Stylized Reference Areas */}
                                         <ReferenceArea x1={0} y1={0} fill="#f1f5f9" fillOpacity={0.03} />
                                         <ReferenceArea x2={0} y1={0} fill="#f1f5f9" fillOpacity={0.03} />
@@ -341,7 +370,7 @@ const IndustryAnalysisPage = () => {
 
                                         <ReferenceLine x={0} stroke="#e2e8f0" strokeWidth={2} strokeDasharray="5 5" />
                                         <ReferenceLine y={0} stroke="#e2e8f0" strokeWidth={2} strokeDasharray="5 5" />
-                                        
+
                                         {[...chartData.scatter].sort((a, b) => b.z - a.z).map((entry, index) => (
                                             <Scatter
                                                 key={index}
@@ -448,6 +477,24 @@ const IndustryAnalysisPage = () => {
                     </div>
                 </div>
             </main>
+
+            {/* [추가] 에러 안내 모달 */}
+            {isModalOpen && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[11000] p-6">
+                    <div className="bg-white p-12 md:p-16 rounded-[48px] md:rounded-[64px] shadow-3xl max-w-md w-full text-center border border-slate-50 animate-in fade-in zoom-in duration-300">
+                        <div className="w-20 h-20 md:w-24 md:h-24 bg-rose-50 text-rose-500 rounded-[32px] md:rounded-[40px] flex items-center justify-center text-4xl md:text-5xl mx-auto mb-8 md:mb-10 shadow-inner">📍</div>
+                        <h3 className="text-xl md:text-2xl font-black text-slate-900 mb-6 md:mb-8 whitespace-pre-line leading-[1.4] tracking-tighter">
+                            {searchError}
+                        </h3>
+                        <button
+                            onClick={() => setIsModalOpen(false)}
+                            className="w-full py-5 md:py-6 bg-slate-900 text-white rounded-[24px] md:rounded-3xl font-black hover:bg-blue-600 transition-all shadow-2xl active:scale-95 text-lg md:text-xl"
+                        >
+                            확인했습니다
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
