@@ -1,27 +1,27 @@
 import React, { useState } from 'react';
 import { commercialService } from 'api/ai/commercialService';
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend,
 } from 'chart.js';
 import { Chart } from 'react-chartjs-2';
 
 ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend
 );
 
 const CommercialPredictPage = () => {
@@ -76,13 +76,13 @@ const CommercialPredictPage = () => {
     };
 
     // [듀얼 차트 데이터 구성]
-   const mixedChartData = result ? {
+    const mixedChartData = result ? {
         labels: ['현재 시세', 'AI 예측'],
         datasets: [
             {
                 type: 'line',
                 label: '월세액 (만원)',
-                data: [150, result.predictedPrice], 
+                data: [150, result.predictedPrice],
                 borderColor: '#f43f5e',
                 backgroundColor: '#f43f5e',
                 borderWidth: 4,
@@ -109,7 +109,7 @@ const CommercialPredictPage = () => {
         <div className="p-8 bg-slate-900 min-h-screen text-white">
             <header className="mb-10">
                 <span className="text-emerald-400 font-black text-xs uppercase tracking-widest">
-                    AI Analytical Engine
+                    1초 만에 확인하는 우리 동네 상가 AI 시세 리포트
                 </span>
                 <h1 className="text-4xl font-black mt-2">🏢 상가 임대료 AI 예측</h1>
             </header>
@@ -120,16 +120,16 @@ const CommercialPredictPage = () => {
                     <div className="space-y-2">
                         <label className="text-[10px] font-black text-slate-500 uppercase ml-1">상권 지역명</label>
                         <input className="w-full bg-slate-800 p-4 rounded-2xl outline-none focus:ring-2 ring-emerald-500 font-bold"
-                               placeholder="예: 서울특별시 마포구 서교동" 
-                               value={inputs.sigungu} 
-                               onChange={e => setInputs({...inputs, sigungu: e.target.value})} />
+                            placeholder="예: 서울특별시 마포구 서교동"
+                            value={inputs.sigungu}
+                            onChange={e => setInputs({ ...inputs, sigungu: e.target.value })} />
                     </div>
 
                     <div className="space-y-2">
                         <label className="text-[10px] font-black text-slate-500 uppercase ml-1">건물 용도</label>
                         <select className="w-full bg-slate-800 p-4 rounded-2xl outline-none focus:ring-2 ring-emerald-500 font-bold"
-                                value={inputs.buildingUse} 
-                                onChange={e => setInputs({...inputs, buildingUse: e.target.value})}>
+                            value={inputs.buildingUse}
+                            onChange={e => setInputs({ ...inputs, buildingUse: e.target.value })}>
                             <option value="제1종근생">제1종 근린생활시설</option>
                             <option value="제2종근생">제2종 근린생활시설</option>
                             <option value="판매시설">판매시설</option>
@@ -141,20 +141,20 @@ const CommercialPredictPage = () => {
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-slate-500 uppercase ml-1">전용면적(㎡)</label>
                             <input type="number" className="w-full bg-slate-800 p-4 rounded-2xl outline-none focus:ring-2 ring-emerald-500 font-bold"
-                                   placeholder="33.0" value={inputs.area} onChange={e => setInputs({...inputs, area: e.target.value})} />
+                                placeholder="33.0" value={inputs.area} onChange={e => setInputs({ ...inputs, area: e.target.value })} />
                         </div>
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-slate-500 uppercase ml-1">층수</label>
                             <input type="number" className="w-full bg-slate-800 p-4 rounded-2xl outline-none focus:ring-2 ring-emerald-500 font-bold"
-                                   placeholder="1" value={inputs.floor} onChange={e => setInputs({...inputs, floor: e.target.value})} />
+                                placeholder="1" value={inputs.floor} onChange={e => setInputs({ ...inputs, floor: e.target.value })} />
                         </div>
                     </div>
 
                     <div className="space-y-2">
                         <label className="text-[10px] font-black text-slate-500 uppercase ml-1">예측 목표 기간</label>
                         <select className="w-full bg-slate-800 p-4 rounded-2xl outline-none focus:ring-2 ring-emerald-500 font-bold"
-                                value={inputs.targetMonth} 
-                                onChange={e => setInputs({...inputs, targetMonth: e.target.value})}>
+                            value={inputs.targetMonth}
+                            onChange={e => setInputs({ ...inputs, targetMonth: e.target.value })}>
                             <option value="h1m">1개월 후 예측</option>
                             <option value="h3m">3개월 후 예측</option>
                             <option value="h6m">6개월 후 (현재 미지원)</option>
@@ -162,7 +162,7 @@ const CommercialPredictPage = () => {
                     </div>
 
                     <button type="submit" disabled={isPredicting}
-                            className={`w-full py-5 rounded-[28px] font-black text-lg transition-all ${isPredicting ? 'bg-slate-700' : 'bg-emerald-600 hover:bg-emerald-500 shadow-xl shadow-emerald-900/10'}`}>
+                        className={`w-full py-5 rounded-[28px] font-black text-lg transition-all ${isPredicting ? 'bg-slate-700' : 'bg-emerald-600 hover:bg-emerald-500 shadow-xl shadow-emerald-900/10'}`}>
                         {isPredicting ? "AI 모델 분석 중..." : "임대료 예측 실행"}
                     </button>
                 </form>
@@ -171,7 +171,7 @@ const CommercialPredictPage = () => {
                 <div className="lg:col-span-8 space-y-6">
                     <div className="bg-gradient-to-br from-emerald-600 to-teal-800 p-10 rounded-[50px] shadow-2xl flex justify-between items-center">
                         <div>
-                            <h3 className="text-emerald-100 font-bold text-xs uppercase tracking-widest mb-2">Estimated Rent Value</h3>
+                            <h3 className="text-emerald-100 font-bold text-xs uppercase tracking-widest mb-2">예상 임대료</h3>
                             {result ? (
                                 <div className="text-7xl font-black tracking-tighter">
                                     {Math.floor(result.predictedPrice).toLocaleString()} <span className="text-2xl font-bold text-emerald-200">만원</span>

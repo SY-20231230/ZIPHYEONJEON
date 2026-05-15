@@ -72,8 +72,8 @@ const CommercialRentPage = () => {
     return (
         <div className="min-h-screen bg-[#F1F5F9] p-8">
             <header className="max-w-7xl mx-auto mb-10">
-                <h1 className="text-4xl font-black text-slate-900 tracking-tighter">🏢 상권 분석 시스템</h1>
-                <p className="text-slate-500 font-medium mt-2">상가 입지 선정을 위한 유동인구, 업황, 임대료 통합 분석</p>
+                <h1 className="text-4xl font-black text-slate-900 tracking-tighter">🏢 상권 임대료 조회</h1>
+                <p className="text-slate-500 font-bold mt-2">국토교통부 실거래가 데이터를 기반으로 지역별 상가 임대료 현황을 상세히 제공합니다.</p>
             </header>
 
             <main className="max-w-7xl mx-auto">

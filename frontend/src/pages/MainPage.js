@@ -46,7 +46,7 @@ const MainPage = () => {
         {
             id: 'cs',
             title: '고객서비스',
-            desc: 'AI 챗봇 상담 및 매물 간 시세 비교 전문 엔진',
+            desc: 'AI 챗봇 서비스 및 실거래가 다운로드',
             icon: '🎧',
             path: '/service',
             color: 'border-amber-100 bg-amber-50/30'
@@ -56,35 +56,35 @@ const MainPage = () => {
     return (
         // 💡 화이트 아웃 방지를 위한 견고한 컨테이너 구조
         <div className="min-h-screen bg-[#F8FAFC]">
-            
+
             {/* [Hero Section] 브랜드 가치 제고 및 통합 검색바 */}
             <header className="bg-white border-b border-slate-100 py-24 lg:py-32 relative overflow-hidden">
                 {/* 배경 데코레이션: 전문적인 분위기 조성 */}
                 <div className="absolute top-0 right-0 w-1/3 h-full bg-slate-50 skew-x-12 translate-x-20 z-0"></div>
-                
+
                 <div className="max-w-7xl mx-auto px-10 relative z-10">
                     <div className="max-w-3xl animate-fadeInUp">
                         {/* 04.28 지침 키워드 반영 문구 */}
                         <h2 className="text-6xl lg:text-8xl font-black leading-[0.9] tracking-tighter text-slate-900 mb-8">
-                            데이터로 증명하는 <br/>
+                            데이터로 증명하는 <br />
                             <span className="text-blue-600">부동산의 진정한 가치</span>
                         </h2>
-                        
+
                         {/* 💡 검색바: 현재는 주거검색(/search)으로 연결되도록 설정 */}
                         <div className="flex p-2 bg-white rounded-[32px] shadow-2xl border border-blue-50 max-w-2xl ring-8 ring-blue-500/5 focus-within:ring-blue-500/10 transition-all">
-                            <input 
-                                type="text" 
-                                placeholder="분석할 단지명, 지역 또는 매물번호를 입력하세요" 
-                                className="flex-grow px-8 py-5 outline-none text-slate-700 font-bold placeholder:text-slate-300" 
+                            <input
+                                type="text"
+                                placeholder="분석할 단지명, 지역 또는 매물번호를 입력하세요"
+                                className="flex-grow px-8 py-5 outline-none text-slate-700 font-bold placeholder:text-slate-300"
                             />
-                            <button 
+                            <button
                                 onClick={() => navigate('/search')}
                                 className="bg-[#002855] text-white px-10 py-5 rounded-[24px] font-black hover:bg-blue-600 transition-all active:scale-95 shadow-lg shadow-blue-900/20"
                             >
                                 분석 시작
                             </button>
                         </div>
-                        
+
                         {/* 사용자 인사말 */}
                         <p className="mt-8 text-slate-400 font-bold ml-4">
                             환영합니다, <span className="text-slate-800">{user?.userName || '사용자'}</span> 님. 무엇을 분석해 드릴까요?
@@ -97,7 +97,7 @@ const MainPage = () => {
             <main className="max-w-7xl mx-auto px-10 py-24">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                     {services.map((service, index) => (
-                        <div 
+                        <div
                             key={service.id}
                             onClick={() => navigate(service.path)}
                             className={`group p-10 rounded-[56px] border ${service.color} shadow-sm hover:shadow-2xl hover:-translate-y-3 transition-all duration-500 cursor-pointer flex flex-col justify-between h-[380px]`}
@@ -114,9 +114,9 @@ const MainPage = () => {
 
                             {/* 하단: 액션 가이드 */}
                             <div className="flex items-center justify-between">
-                                <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Detail View</span>
+                                <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">상세 보기</span>
                                 <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 12h14m-7-7 7 7-7 7" /></svg>
                                 </div>
                             </div>
                         </div>
@@ -126,8 +126,8 @@ const MainPage = () => {
 
             {/* [Footer] */}
             <footer className="bg-slate-900 py-16 text-center">
-                <div className="text-white font-black text-2xl italic tracking-tighter opacity-50">JIPHYEONJEON <span className="text-blue-500 not-italic text-sm ml-1">AI CENTER</span></div>
-                <p className="text-slate-600 text-[10px] font-bold mt-4 tracking-[0.5em]">© 2026 ZIPHYEONJEON ALL RIGHTS RESERVED.</p>
+                <div className="text-white font-black text-2xl italic tracking-tighter opacity-50">JIPHYEONJEON <span className="text-blue-500 not-italic text-sm ml-1">AI 분석 센터</span></div>
+                <p className="text-slate-600 text-[10px] font-bold mt-4 tracking-[0.5em]">© 2026 집현전 ALL RIGHTS RESERVED.</p>
             </footer>
         </div>
     );

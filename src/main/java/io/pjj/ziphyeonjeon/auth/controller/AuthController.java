@@ -10,6 +10,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import io.pjj.ziphyeonjeon.auth.dto.LoginRequest;
 import io.pjj.ziphyeonjeon.auth.dto.LoginResponse;
 import io.pjj.ziphyeonjeon.auth.dto.SignupRequest;
@@ -39,7 +40,7 @@ public class AuthController {
      * 1. 회원가입 API
      */
     @PostMapping("/signup")
-    public ResponseEntity<String> signup(@RequestBody SignupRequest request) {
+    public ResponseEntity<String> signup(@Valid @RequestBody SignupRequest request) {
         log.info("[API] 회원가입 시도: {}", request.getEmail());
         authService.signup(request); 
         return ResponseEntity.status(HttpStatus.CREATED).body("회원가입이 완료되었습니다.");

@@ -7,7 +7,7 @@ public class ExternalApiProperties {
 
     private Vworld vworld = new Vworld();
     private Seoul seoul = new Seoul();
-    private Gemini gemini = new Gemini();
+    private AiServer aiServer = new AiServer();
 
     public Vworld getVworld() {
         return vworld;
@@ -17,13 +17,12 @@ public class ExternalApiProperties {
         return seoul;
     }
 
-    public Gemini getGemini() {
-        return gemini;
+    public AiServer getAiServer() {
+        return aiServer;
     }
 
-    public static class Gemini {
+    public static class AiServer {
         private String baseUrl;
-        private String apiKey;
 
         public String getBaseUrl() {
             return baseUrl;
@@ -31,14 +30,6 @@ public class ExternalApiProperties {
 
         public void setBaseUrl(String baseUrl) {
             this.baseUrl = baseUrl;
-        }
-
-        public String getApiKey() {
-            return apiKey;
-        }
-
-        public void setApiKey(String apiKey) {
-            this.apiKey = apiKey;
         }
     }
 

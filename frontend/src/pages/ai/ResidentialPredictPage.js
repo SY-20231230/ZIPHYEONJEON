@@ -34,6 +34,8 @@ const ResidentialPredictPage = () => {
   const [multiResults, setMultiResults] = useState({});   // 1,3,6개월 예측 결과 저장
   const [isPredicting, setIsPredicting] = useState(false); // 로딩 상태
   const [sidebarData, setSidebarData] = useState({ liked: [], recent: [] }); // 사이드바 데이터
+  const [uiMessage, setUiMessage] = useState(''); // [NEW] 화면 가이드 메시지
+  const [isSearching, setIsSearching] = useState(false); // [NEW] 검색 상태 관리
 
   // --- 2. [Effect] 사이드바 초기 데이터 로딩 ---
   useEffect(() => {
@@ -53,43 +55,39 @@ const ResidentialPredictPage = () => {
   }, []);
 
   /**
-   * 3. [Action] 단지/도로명 스마트 검색
-   * 입력된 주소를 분석하여 지역구와 검색 키워드를 분리 전송합니다.
+   * [수정] 주소 지능형 검색 (복잡한 파싱 로직을 백엔드 엔진에 위임)
    */
   const handleSearch = async () => {
     if (!keyword.trim()) return;
+
+    // [개선] 새로운 조회 시작 시 기존 데이터와 메시지를 즉시 비움
+    setSearchResults([]);
+    setUiMessage("데이터를 조회하고 있습니다...");
+    setIsSearching(true);
+
     try {
       const fullText = keyword.trim();
-      const tokens = fullText.split(' ');
-      
-      let searchVal = fullText;
-      let sigunguVal = "";
 
-      if (tokens.length >= 2) {
-        // 1. 숫자가 포함되지 않은 도로명(~~로, ~~길)을 검색 키워드로 우선 추출
-        const roadToken = tokens.find(t => (t.endsWith('로') || t.endsWith('길')) && !/\d/.test(t));
-        searchVal = roadToken || tokens[tokens.length - 1].replace(/[0-9]/g, '');
-
-        // 2. 지역구 스마트 선택 (시/도 명칭 제외 로직 보완)
-        sigunguVal = (tokens[0].endsWith('시') || tokens[0].endsWith('도')) 
-                     ? (tokens[1] || tokens[0]) 
-                     : tokens[0];
-      }
-
+      // [개선] 프론트엔드의 취약한 파싱 로직을 제거하고 전체 키워드를 백엔드에 그대로 전달합니다.
+      // 백엔드(PriceSearchService)가 도로명, 건물번호 등을 더 정확하게 분석합니다.
       const res = await residentialService.searchDirectory({
-        keyword: searchVal,
-        sigungu: sigunguVal,
-        propertyType: inputs.propertyType,
+        keyword: fullText,
+        sigungu: "", // 백엔드 내부 파서가 keyword에서 지역 정보를 추출하도록 유도
+        propertyType: "", // 건물 타입 제약 없이 모든 결과를 조회
         page: 0, size: 10
       });
 
       if (!res.content || res.content.length === 0) {
-        alert("해당 주소와 일치하는 단지를 찾을 수 없습니다.\n건물 번호를 제외한 도로명이나 단지명으로 입력해 보세요.");
+        setUiMessage("일치하는 정보를 찾을 수 없습니다. 주소를 다시 확인해 주세요.");
         return;
       }
+
       setSearchResults(res.content);
+      setUiMessage(""); // 성공 시 메시지 초기화
     } catch (err) {
-      alert("단지 정보를 찾는 중 오류가 발생했습니다.");
+      setUiMessage("조회 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+    } finally {
+      setIsSearching(false); // 검색 완료
     }
   };
 
@@ -118,11 +116,11 @@ const ResidentialPredictPage = () => {
       };
 
       setInputs(autoFillData);
-      setKeyword(displayAddress); 
+      setKeyword(displayAddress);
       setSearchResults([]);
 
       // 사이드바 이름 업데이트 (매핑용)
-      const updateList = (list) => list.map(h => 
+      const updateList = (list) => list.map(h =>
         (h.houseId === hId) ? { ...h, complexName: d.name, name: d.name } : h
       );
       setSidebarData(prev => ({
@@ -144,12 +142,12 @@ const ResidentialPredictPage = () => {
   const executeAIPrediction = async (isAuto, data) => {
     // 필수 데이터(지역구, 면적)가 없으면 실행 차단
     if (!data.sigungu || !data.area) {
-      if (!isAuto) alert("먼저 검색을 통해 매물을 선택하거나 지역과 면적을 입력해주세요.");
+      if (!isAuto) setUiMessage("먼저 검색을 통해 매물을 선택하거나 지역과 면적을 입력해주세요.");
       return;
     }
 
     setIsPredicting(true);
-    setMultiResults({}); 
+    setMultiResults({});
 
     try {
       const months = data.dealType === '월세' ? ['h1m', 'h3m'] : ['h1m', 'h3m', 'h6m'];
@@ -195,7 +193,7 @@ const ResidentialPredictPage = () => {
 
     const labels = ['현재 시세', ...keys.map(k => k.replace('h', '').replace('m', '개월 후'))];
     const predictedPrices = keys.map(k => multiResults[k].predictedPrice);
-    
+
     let basePrice = inputs.currentPrice;
     if (!basePrice || basePrice === 0) {
       basePrice = predictedPrices.length > 0 ? Math.round(predictedPrices[0] * 0.99) : 0;
@@ -220,8 +218,8 @@ const ResidentialPredictPage = () => {
     <div className="min-h-screen bg-[#0F172A] text-slate-200 p-8">
       <header className="flex justify-between items-center mb-12 border-b border-slate-800 pb-6">
         <div>
-          <p className="text-blue-400 text-xs font-bold tracking-widest uppercase mb-1">Molit AI Inference Engine v12.0</p>
-          <h1 className="text-3xl font-black tracking-tight">부동산 가치 정밀 예측</h1>
+          <p className="text-blue-400 text-xs font-bold tracking-widest uppercase mb-1">1초 만에 확인하는 우리 동네 주택 AI 시세 리포트</p>
+          <h1 className="text-3xl font-black tracking-tight">주택 거래가 예측</h1>
         </div>
       </header>
 
@@ -229,24 +227,46 @@ const ResidentialPredictPage = () => {
         <div className="lg:col-span-4 space-y-6">
           {/* Complex Finder: 도로명 주소 입력 지원 */}
           <div className="bg-slate-800/50 p-6 rounded-3xl border border-slate-700 shadow-xl">
-            <label className="text-[10px] font-bold text-blue-400 uppercase mb-3 block">Complex Finder</label>
+            <label className="text-[10px] font-bold text-blue-400 uppercase mb-3 block">주소를 입력하세요.</label>
             <div className="flex gap-2">
-              <input 
+              <input
                 className="flex-grow bg-slate-900 border-none rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500"
                 placeholder="도로명 주소 또는 단지명 입력"
                 value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
+                onChange={(e) => {
+                  setKeyword(e.target.value);
+                  if (uiMessage) setUiMessage(""); // [개선] 타이핑 시작 시 메시지 초기화
+                }}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               />
-              <button onClick={handleSearch} className="bg-blue-600 px-4 py-2 rounded-xl font-bold hover:bg-blue-500 transition-colors">검색</button>
+              <button
+                onClick={handleSearch}
+                disabled={isSearching}
+                className={`px-4 py-2 rounded-xl font-bold transition-all ${isSearching ? 'bg-slate-700 cursor-wait' : 'bg-blue-600 hover:bg-blue-500'}`}
+              >
+                {isSearching ? (
+                  <span className="flex items-center gap-2">
+                    <span className="animate-spin inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full"></span>
+                    조회중
+                  </span>
+                ) : "검색"}
+              </button>
             </div>
+
+            {/* [개선] 시각적 가이드 메시지: 상태에 따른 색상 구분 및 아이콘 추가 */}
+            {uiMessage && (
+              <p className={`mt-2 text-[10px] font-bold animate-pulse ${isSearching ? 'text-blue-400' : 'text-rose-400'}`}>
+                {isSearching ? "🔍 " : "⚠️ "}{uiMessage}
+              </p>
+            )}
+
             {/* 검색 결과 드롭다운: 필드명 규격(name, roadname) 준수 */}
             {searchResults.length > 0 && (
               <div className="mt-3 bg-slate-900 border border-slate-700 rounded-xl overflow-hidden max-h-60 overflow-y-auto">
                 {searchResults.map((item, i) => (
                   <div key={i} onClick={() => handleSelectProperty(item)} className="p-3 hover:bg-slate-800 cursor-pointer border-b border-slate-800 last:border-none">
-                    <p className="text-xs font-bold">{item.name}</p>
-                    <p className="text-[10px] text-slate-500">{item.roadname}</p>
+                    <p className="text-xs font-bold">{item.complexName}</p>
+                    <p className="text-[10px] text-slate-500">{item.roadAddress}</p>
                   </div>
                 ))}
               </div>
@@ -255,21 +275,28 @@ const ResidentialPredictPage = () => {
 
           <form onSubmit={(e) => { e.preventDefault(); executeAIPrediction(false, inputs); }} className="bg-slate-800/50 p-8 rounded-3xl border border-slate-700 shadow-xl space-y-5">
             <div className="grid grid-cols-2 gap-3">
-              <select className="bg-slate-900 rounded-xl p-3 text-sm border-none" value={inputs.dealType} onChange={e => setInputs({...inputs, dealType: e.target.value})}>
+              <select className="bg-slate-900 rounded-xl p-3 text-sm border-none" value={inputs.dealType} onChange={e => setInputs({ ...inputs, dealType: e.target.value })}>
                 <option value="매매">매매</option><option value="전세">전세</option><option value="월세">월세</option>
               </select>
-              <select className="bg-slate-900 rounded-xl p-3 text-sm border-none" value={inputs.propertyType} onChange={e => setInputs({...inputs, propertyType: e.target.value})}>
-                <option value="아파트">아파트</option><option value="연립다세대">연립다세대</option>
+              <select className="bg-slate-900 rounded-xl p-3 text-sm border-none" value={inputs.propertyType} onChange={e => setInputs({ ...inputs, propertyType: e.target.value })}>
+                <option value="아파트">아파트</option>
+                <option value="연립다세대">연립다세대</option>
+                <option value="오피스텔">오피스텔</option>
               </select>
             </div>
-            
-            <input className="w-full bg-slate-900 rounded-xl p-3 text-sm border-none" placeholder="지역구 (검색 시 자동 입력)" value={inputs.sigungu} readOnly />
-            
+
+            <input
+              className="w-full bg-slate-900 rounded-xl p-3 text-sm border-none focus:ring-1 focus:ring-blue-500"
+              placeholder="지역구 입력"
+              value={inputs.sigungu}
+              onChange={(e) => setInputs({ ...inputs, sigungu: e.target.value })}
+            />
+
             <div className="grid grid-cols-1 gap-2">
-              <input type="number" className="bg-slate-900 rounded-xl p-3 text-xs border-none" placeholder="전용면적(㎡) 입력" value={inputs.area} onChange={e => setInputs({...inputs, area: e.target.value})} />
+              <input type="number" className="bg-slate-900 rounded-xl p-3 text-xs border-none" placeholder="전용면적(㎡) 입력" value={inputs.area} onChange={e => setInputs({ ...inputs, area: e.target.value })} />
             </div>
 
-            <select className="w-full bg-slate-900 rounded-xl p-3 text-sm border-none" value={inputs.targetMonth} onChange={e => setInputs({...inputs, targetMonth: e.target.value})}>
+            <select className="w-full bg-slate-900 rounded-xl p-3 text-sm border-none" value={inputs.targetMonth} onChange={e => setInputs({ ...inputs, targetMonth: e.target.value })}>
               <option value="h1m">1개월 후</option><option value="h3m">3개월 후</option>
               {inputs.dealType !== '월세' && <option value="h6m">6개월 후</option>}
             </select>
@@ -287,7 +314,7 @@ const ResidentialPredictPage = () => {
                 <div>
                   <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1">Target Valuation</p>
                   <h2 className="text-6xl font-black text-blue-400">
-                    {(multiResults[inputs.targetMonth]?.predictedPrice || Object.values(multiResults)[0]?.predictedPrice)?.toLocaleString()} 
+                    {(multiResults[inputs.targetMonth]?.predictedPrice || Object.values(multiResults)[0]?.predictedPrice)?.toLocaleString()}
                     <span className="text-2xl font-light italic ml-1">만원</span>
                   </h2>
                 </div>
@@ -304,7 +331,7 @@ const ResidentialPredictPage = () => {
 
           <div className="space-y-4">
             <section className="bg-slate-800/50 p-6 rounded-3xl border border-slate-700">
-              <h4 className="text-xs font-black text-blue-400 uppercase mb-4 tracking-tighter">❤️ Favorites</h4>
+              <h4 className="text-xs font-black text-blue-400 uppercase mb-4 tracking-tighter">❤️ 찜 매물</h4>
               <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
                 {sidebarData.liked.map((item, i) => (
                   <div key={i} onClick={() => handleSelectProperty(item)} className="p-3 bg-slate-900 rounded-xl cursor-pointer hover:ring-1 hover:ring-blue-500 transition-all">
@@ -315,12 +342,12 @@ const ResidentialPredictPage = () => {
               </div>
             </section>
             <section className="bg-slate-800/50 p-6 rounded-3xl border border-slate-700">
-              <h4 className="text-xs font-black text-slate-400 uppercase mb-4 tracking-tighter">🕒 Recent</h4>
+              <h4 className="text-xs font-black text-slate-400 uppercase mb-4 tracking-tighter">🕒 최근 본 매물</h4>
               <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
                 {sidebarData.recent.map((item, i) => (
                   <div key={i} onClick={() => handleSelectProperty(item)} className="p-3 bg-slate-900 rounded-xl cursor-pointer hover:ring-1 hover:ring-slate-500 transition-all">
                     <p className="text-[11px] font-bold truncate">{item.name || item.complexName || "이름 없는 매물"}</p>
-                    <p className="text-[9px] text-slate-500 italic">정보 불러오기</p>
+                    <p className="text-[9px] text-slate-500 italic">클릭 시 자동 예측</p>
                   </div>
                 ))}
               </div>

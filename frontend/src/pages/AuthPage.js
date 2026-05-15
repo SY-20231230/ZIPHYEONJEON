@@ -12,6 +12,8 @@ const AuthPage = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
 
+
+
     const from = location.state?.from?.pathname || "/main";
 
     // 💡 1. 백엔드 DTO(SignupRequest)와 100% 일치하도록 필드 구성
@@ -23,6 +25,20 @@ const AuthPage = () => {
         familyType: '1인 가구', // 초기값 설정
         incomeLevel: '중'       // 💡 백엔드 필수 필드 추가
     });
+
+
+
+    const calculateStrength = (pwd) => {
+        if (!pwd) return { label: '', color: 'bg-transparent w-0', text: '' };
+        if (pwd.length < 8) return { label: 'Weak (짧음)', color: 'bg-rose-500 w-1/3', text: 'text-rose-500' };
+        const hasLetter = /[A-Za-z]/.test(pwd);
+        const hasNum = /\d/.test(pwd);
+        const hasSpecial = /[@$!%*#?&]/.test(pwd);
+        if (hasLetter && hasNum && hasSpecial) return { label: 'Strong (안전)', color: 'bg-emerald-500 w-full', text: 'text-emerald-500' };
+        return { label: 'Medium (보통)', color: 'bg-amber-500 w-2/3', text: 'text-amber-500' };
+    };
+
+    const pwdStrength = calculateStrength(formData?.password || '');
 
     useEffect(() => {
         const handleScroll = () => {
@@ -45,8 +61,26 @@ const AuthPage = () => {
         if (errorMsg) setErrorMsg('');
     };
 
+    const validateFrontend = () => {
+        if (mode === 'login') return true;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email)) {
+            setErrorMsg('유효한 이메일 형식을 입력해주세요.');
+            return false;
+        }
+        const pwdRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,20}$/;
+        if (!pwdRegex.test(formData.password)) {
+            setErrorMsg('비밀번호는 영문, 숫자, 특수문자를 포함해 8~20자리여야 합니다.');
+            return false;
+        }
+        return true;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!validateFrontend()) return;
+
         setIsLoading(true);
         setErrorMsg('');
 
@@ -97,7 +131,7 @@ const AuthPage = () => {
             <div className="fixed top-0 left-0 h-1 bg-gradient-to-r from-blue-700 to-cyan-500 z-50 transition-all duration-100" style={{ width: `${scrollPercent}%` }}></div>
 
             {/* [좌측 패널] - 풀스크린 랜딩 페이지 형태 */}
-            <main className="lg:w-7/12 xl:w-8/12 bg-[linear-gradient(to_bottom,#ffffff_0%,#f8fafc_25%,#0f172a_45%,#0f172a_100%)] relative overflow-x-hidden">
+            <main className="lg:w-7/12 xl:w-8/12 bg-[linear-gradient(to_bottom,#ffffff_0%,#f8fafc_25%,#0f172a_45%,#0f172a_100%)] relative">
                 {/* Hero Section */}
                 <section className="relative w-full min-h-[75vh] flex flex-col justify-center p-12 lg:p-16 overflow-hidden">
                     <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-50/60 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
@@ -111,10 +145,10 @@ const AuthPage = () => {
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">ZIPHYEONJEON</span>
                         </h1>
                         <p className="text-2xl lg:text-3xl text-slate-800 font-bold tracking-tight mt-6">
-                            미래를 읽는 데이터,<br/>당신의 결정을 확신으로 바꾸다.
+                            미래를 읽는 데이터,<br />당신의 결정을 확신으로 바꾸다.
                         </p>
                         <p className="text-lg text-slate-500 font-medium leading-relaxed max-w-xl">
-                            국토교통부, 소상공인365 등 대한민국의 방대한 부동산·상권 빅데이터를 통합하여 
+                            국토교통부, 소상공인365 등 대한민국의 방대한 부동산·상권 빅데이터를 통합하여
                             가장 완벽한 초정밀 AI 예측 결과를 제공합니다.
                         </p>
                     </div>
@@ -125,7 +159,7 @@ const AuthPage = () => {
                     <div className="flex flex-col xl:flex-row gap-16 items-center">
                         <div className="flex-1 space-y-8 reveal">
                             <h2 className="text-4xl lg:text-5xl font-black text-white tracking-tighter leading-tight drop-shadow-md">
-                                주거용 AI 부동산<br/><span className="text-blue-400">정밀 분석</span>
+                                주거용 AI 부동산<br /><span className="text-blue-400">정밀 분석</span>
                             </h2>
                             <div className="space-y-6">
                                 <div className="p-6 bg-white/10 backdrop-blur-md rounded-3xl border border-white/10 shadow-lg hover:bg-white/20 transition-colors duration-300">
@@ -155,22 +189,22 @@ const AuthPage = () => {
                                 </div>
                                 <svg viewBox="0 0 100 50" className="w-full h-auto overflow-visible relative z-10">
                                     {/* Grid */}
-                                    <line x1="0" y1="10" x2="100" y2="10" stroke="#334155" strokeWidth="0.5" strokeDasharray="2,2"/>
-                                    <line x1="0" y1="30" x2="100" y2="30" stroke="#334155" strokeWidth="0.5" strokeDasharray="2,2"/>
+                                    <line x1="0" y1="10" x2="100" y2="10" stroke="#334155" strokeWidth="0.5" strokeDasharray="2,2" />
+                                    <line x1="0" y1="30" x2="100" y2="30" stroke="#334155" strokeWidth="0.5" strokeDasharray="2,2" />
                                     {/* Gradient fill */}
-                                    <path d="M0,40 Q20,35 40,20 T70,15 T100,5 L100,50 L0,50 Z" fill="url(#blue-grad)" className="opacity-20 animate-pulse"/>
+                                    <path d="M0,40 Q20,35 40,20 T70,15 T100,5 L100,50 L0,50 Z" fill="url(#blue-grad)" className="opacity-20 animate-pulse" />
                                     {/* Line */}
-                                    <path d="M0,40 Q20,35 40,20 T70,15 T100,5" fill="none" stroke="#60a5fa" strokeWidth="2.5" strokeLinecap="round" strokeDasharray="200" strokeDashoffset="200" style={{ animation: "dash 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards" }}/>
+                                    <path d="M0,40 Q20,35 40,20 T70,15 T100,5" fill="none" stroke="#60a5fa" strokeWidth="2.5" strokeLinecap="round" strokeDasharray="200" strokeDashoffset="200" style={{ animation: "dash 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards" }} />
                                     <defs>
                                         <linearGradient id="blue-grad" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="0%" stopColor="#60a5fa"/>
-                                            <stop offset="100%" stopColor="transparent"/>
+                                            <stop offset="0%" stopColor="#60a5fa" />
+                                            <stop offset="100%" stopColor="transparent" />
                                         </linearGradient>
                                     </defs>
                                     {/* Points */}
-                                    <circle cx="40" cy="20" r="2.5" fill="#1E293B" stroke="#60a5fa" strokeWidth="1.5" className="opacity-0" style={{ animation: "fadeIn 0.5s ease-out 1s forwards" }}/>
-                                    <circle cx="70" cy="15" r="2.5" fill="#1E293B" stroke="#60a5fa" strokeWidth="1.5" className="opacity-0" style={{ animation: "fadeIn 0.5s ease-out 1.5s forwards" }}/>
-                                    <circle cx="100" cy="5" r="3.5" fill="#60a5fa" className="animate-ping opacity-0" style={{ animation: "fadeIn 0.5s ease-out 2s forwards" }}/>
+                                    <circle cx="40" cy="20" r="2.5" fill="#1E293B" stroke="#60a5fa" strokeWidth="1.5" className="opacity-0" style={{ animation: "fadeIn 0.5s ease-out 1s forwards" }} />
+                                    <circle cx="70" cy="15" r="2.5" fill="#1E293B" stroke="#60a5fa" strokeWidth="1.5" className="opacity-0" style={{ animation: "fadeIn 0.5s ease-out 1.5s forwards" }} />
+                                    <circle cx="100" cy="5" r="3.5" fill="#60a5fa" className="animate-ping opacity-0" style={{ animation: "fadeIn 0.5s ease-out 2s forwards" }} />
                                 </svg>
                                 <div className="flex justify-between mt-6 text-[10px] font-bold text-slate-400 relative z-10 tracking-widest">
                                     <span>현재가</span>
@@ -218,7 +252,7 @@ const AuthPage = () => {
 
                         <div className="flex-1 space-y-8 reveal">
                             <h2 className="text-4xl lg:text-5xl font-black text-white tracking-tighter leading-tight">
-                                상가 및 상권<br/><span className="text-emerald-400">빅데이터 분석</span>
+                                상가 및 상권<br /><span className="text-emerald-400">빅데이터 분석</span>
                             </h2>
                             <div className="space-y-6">
                                 <div className="p-6 bg-white/5 backdrop-blur-md rounded-3xl border border-white/10 hover:bg-white/10 transition-colors duration-300">
@@ -240,7 +274,7 @@ const AuthPage = () => {
 
                 {/* Footer / Scroll to top */}
                 <section className="w-full p-12 flex justify-center pb-24 border-t border-white/5">
-                    <button 
+                    <button
                         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                         className="px-8 py-4 bg-white/5 text-slate-300 font-black rounded-full hover:bg-white hover:text-slate-900 hover:-translate-y-1 transition-all duration-300 shadow-xl backdrop-blur-md flex items-center gap-3 tracking-widest text-sm"
                     >
@@ -249,44 +283,70 @@ const AuthPage = () => {
                 </section>
             </main>
 
-            {/* [우측 패널] - 스티키 인증 영역 */}
-            <aside className="lg:w-5/12 xl:w-4/12 bg-[#0F172A] lg:sticky lg:top-0 lg:h-screen flex items-center justify-center p-8 overflow-hidden">
+            {/* [우측 패널] - 배경용 컨테이너 추가하여 흰 여백 해결 */}
+            <div className="lg:w-5/12 xl:w-4/12 bg-[#0F172A] relative min-h-screen">
+                <div className="lg:sticky lg:top-0 lg:h-screen w-full flex flex-col items-center justify-center p-8 overflow-hidden">
+
+
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"></div>
 
                 <div className="w-full max-w-[420px] relative z-10">
+
                     <div className="bg-white/5 backdrop-blur-xl p-10 lg:p-12 rounded-[56px] border border-white/10 shadow-2xl">
                         <div className="flex bg-white/5 p-1.5 rounded-[24px] mb-12">
                             <button onClick={() => setMode('login')} className={`flex-1 py-4 rounded-[20px] text-sm font-black transition-all ${mode === 'login' ? 'bg-white text-[#001A3D]' : 'text-slate-500 hover:text-slate-300'}`}>로그인</button>
                             <button onClick={() => setMode('signup')} className={`flex-1 py-4 rounded-[20px] text-sm font-black transition-all ${mode === 'signup' ? 'bg-white text-[#001A3D]' : 'text-slate-500 hover:text-slate-300'}`}>회원가입</button>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-8">
+                        <form onSubmit={handleSubmit} className="space-y-8" autoComplete="off">
                             <div>
-                                <h3 className="text-3xl font-black text-white tracking-tighter">{mode === 'login' ? '보안 인증' : '신규 권한 신청'}</h3>
+                                <h3 className="text-3xl font-black text-white tracking-tighter">{mode === 'login' ? '로그인 인증' : '신규 권한 신청'}</h3>
                                 {errorMsg && <p className="text-red-400 text-xs font-bold mt-2 animate-pulse">⚠ {errorMsg}</p>}
                             </div>
 
                             <div className="space-y-4">
-                                <input name="email" type="email" placeholder="Access Email" required className="w-full px-8 py-5 bg-white/5 border border-white/10 rounded-2xl text-white outline-none font-medium" onChange={handleChange} />
-                                <input name="password" type="password" placeholder="Passkey" required className="w-full px-8 py-5 bg-white/5 border border-white/10 rounded-2xl text-white outline-none font-medium" onChange={handleChange} />
+                                <input
+                                    name="email"
+                                    type="text"
+                                    placeholder="아이디 (이메일)"
+                                    required
+                                    className="w-full px-8 py-5 bg-white/5 border border-white/10 rounded-2xl text-white outline-none font-medium"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                />
+                                <div>
+                                    <input name="password" type="password" placeholder="비밀번호" required className="w-full px-8 py-5 bg-white/5 border border-white/10 rounded-2xl text-white outline-none font-medium" onChange={handleChange} />
+                                    {mode === 'signup' && formData.password && (
+                                        <div className="mt-2 px-2 flex items-center justify-between">
+                                            <div className="h-1 flex-1 bg-white/10 rounded-full overflow-hidden flex">
+                                                <div className={`h-full transition-all duration-300 ${pwdStrength.color}`}></div>
+                                            </div>
+                                            <span className={`ml-3 text-[10px] font-black tracking-widest uppercase ${pwdStrength.text}`}>{pwdStrength.label}</span>
+                                        </div>
+                                    )}
+                                </div>
 
                                 {mode === 'signup' && (
                                     <>
-                                        <input name="userName" placeholder="Full Name" required className="w-full px-8 py-5 bg-white/5 border border-white/10 rounded-2xl text-white outline-none font-medium" onChange={handleChange} />
-                                        <input name="creditScore" type="number" placeholder="Credit Score (e.g. 750)" className="w-full px-8 py-5 bg-white/5 border border-white/10 rounded-2xl text-white outline-none font-medium" onChange={handleChange} />
+                                        <input name="userName" placeholder="성명" required className="w-full px-8 py-5 bg-white/5 border border-white/10 rounded-2xl text-white outline-none font-medium" onChange={handleChange} />
 
-                                        <select name="familyType" className="w-full px-8 py-5 bg-[#1e293b] border border-white/10 rounded-2xl text-white outline-none" onChange={handleChange} value={formData.familyType}>
-                                            <option value="1인 가구">1인 가구</option>
-                                            <option value="2인 가구">2인 가구</option>
-                                            <option value="다자녀 가구">다자녀 가구</option>
-                                        </select>
+                                        {/* 선택 항목들 */}
+                                        <div className="pt-4 border-t border-white/10">
+                                            <p className="text-xs text-slate-400 font-bold mb-3">추가 정보 (선택 사항)</p>
+                                            <input name="creditScore" type="number" placeholder="신용점수 (예: 750)" className="w-full px-8 py-5 bg-white/5 border border-white/10 rounded-2xl text-white outline-none font-medium mb-4" onChange={handleChange} />
 
-                                        {/* 💡 4. 소득 수준 필드 추가 (백엔드 필수값) */}
-                                        <select name="incomeLevel" className="w-full px-8 py-5 bg-[#1e293b] border border-white/10 rounded-2xl text-white outline-none" onChange={handleChange} value={formData.incomeLevel}>
-                                            <option value="상">소득 수준: 상</option>
-                                            <option value="중">소득 수준: 중</option>
-                                            <option value="하">소득 수준: 하</option>
-                                        </select>
+                                            <select name="familyType" className="w-full px-8 py-5 bg-[#1e293b] border border-white/10 rounded-2xl text-white outline-none mb-4" onChange={handleChange} value={formData.familyType}>
+                                                <option value="1인 가구">1인 가구</option>
+                                                <option value="2인 가구">2인 가구</option>
+                                                <option value="다자녀 가구">다자녀 가구</option>
+                                            </select>
+
+                                            <select name="incomeLevel" className="w-full px-8 py-5 bg-[#1e293b] border border-white/10 rounded-2xl text-white outline-none" onChange={handleChange} value={formData.incomeLevel}>
+                                                <option value="상">소득 수준: 상</option>
+                                                <option value="중">소득 수준: 중</option>
+                                                <option value="하">소득 수준: 하</option>
+                                            </select>
+                                        </div>
                                     </>
                                 )}
                             </div>
@@ -294,10 +354,25 @@ const AuthPage = () => {
                             <button type="submit" disabled={isLoading} className={`w-full py-5 rounded-2xl font-black text-lg transition-all shadow-lg ${isLoading ? 'bg-slate-700 text-slate-400 cursor-not-allowed' : 'bg-blue-600 text-white shadow-blue-900/40 hover:bg-blue-500 hover:-translate-y-1'}`}>
                                 {isLoading ? "처리 중..." : (mode === 'login' ? '시스템 접속하기' : '가입 심사 요청')}
                             </button>
+
+                            {mode === 'login' && (
+                                <div className="pt-6 border-t border-white/10 mt-6">
+                                    <p className="text-center text-xs text-slate-400 font-bold mb-4">소셜 계정으로 빠른 시작</p>
+                                    <div className="flex gap-4">
+                                        <a href={`${process.env.REACT_APP_API_URL || 'http://localhost:8080'}/oauth2/authorization/kakao`} className="flex-1 py-4 bg-[#FEE500] hover:bg-[#FDD800] text-[#000000] rounded-2xl font-black text-sm flex justify-center items-center gap-2 transition-all hover:-translate-y-1 shadow-lg">
+                                            <span>💬 카카오 로그인</span>
+                                        </a>
+                                        <a href={`${process.env.REACT_APP_API_URL || 'http://localhost:8080'}/oauth2/authorization/google`} className="flex-1 py-4 bg-white hover:bg-slate-50 text-slate-700 rounded-2xl font-black text-sm flex justify-center items-center gap-2 transition-all hover:-translate-y-1 shadow-lg border border-slate-200">
+                                            <span>🌐 구글 로그인</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            )}
                         </form>
                     </div>
                 </div>
-            </aside>
+                </div>
+            </div>
         </div>
     );
 };

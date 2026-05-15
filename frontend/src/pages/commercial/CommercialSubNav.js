@@ -6,9 +6,9 @@ const CommercialSubNav = () => {
     const navigate = useNavigate();
 
     const tabs = [
+        { name: '임대료 조회', path: '/search/commercial/rent' },
         { name: '유동인구 분석', path: '/search/commercial/population' },
         { name: '지역별 업황', path: '/search/commercial/industry' },
-        { name: '임대료 조회', path: '/search/commercial/rent' },
     ];
 
     return (

@@ -44,7 +44,7 @@ const Navbar = () => {
      * 💡 04.30 업데이트 반영 데이터셋
      * 백엔드 API 통합 및 페이지 분리에 따른 경로 설정
      */
-    const navConfig = [
+    let navConfig = [
         {
             title: "상가검색",
             path: "/search/commercial/population",
@@ -77,7 +77,7 @@ const Navbar = () => {
             title: "고객서비스",
             path: "/service",
             subMenus: [
-                { name: "AI 챗봇 상담", path: "/service" },
+                { name: "AI 챗봇 서비스", path: "/service" },
                 { name: "실거래가 다운로드 센터", path: "/price/download" } // [NEW] 실거래가 원천 데이터 다운로드
             ]
         },
@@ -93,6 +93,17 @@ const Navbar = () => {
         }
     ];
 
+    if (user?.userType === 'ROLE_ADMIN') {
+        navConfig.push({
+            title: "관리자 대시보드",
+            path: "/admin",
+            subMenus: [
+                { name: "회원 관리", path: "/admin/users" },
+                { name: "시스템 통계", path: "/admin/stats" }
+            ]
+        });
+    }
+
     const handleLogoutClick = () => {
         setIsLogoutModalOpen(true);
     };
@@ -101,6 +112,10 @@ const Navbar = () => {
         setIsLogoutModalOpen(false);
         logout(); // sessionStorage 삭제 및 리다이렉트 처리
     };
+
+    if (isAuthPage) {
+        return null;
+    }
 
     return (
         <>
@@ -112,8 +127,8 @@ const Navbar = () => {
                     {/* 브랜드 로고 */}
                     <div className="flex items-center gap-12 h-full">
                         <Link to="/main" className="text-2xl font-black tracking-tighter text-[#002855] flex items-center gap-2">
-                            <span className="bg-[#002855] text-white p-1.5 rounded-xl text-xl shadow-lg shadow-blue-900/20">🏛️</span>
-                            집현전 <span className="text-blue-500 font-light italic text-sm tracking-widest">ZIP</span>
+                            <img src="/Logo_cropZIPHYEONJEONv1.png" alt="Logo" className="h-8 w-auto object-contain shadow-sm" />
+                            집현전 <span className="text-blue-500 font-light italic text-sm tracking-widest">부동산 AI</span>
                         </Link>
 
                         {/* 메인 메뉴 (로그인 시 노출) */}
@@ -168,7 +183,7 @@ const Navbar = () => {
                                         {user?.userName?.charAt(0) || 'U'}
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="text-[9px] text-slate-400 font-black uppercase tracking-tighter leading-none mb-1">Authenticated</span>
+                                        <span className="text-[9px] text-slate-400 font-black uppercase tracking-tighter leading-none mb-1">인증됨</span>
                                         <span className="text-xs font-black text-slate-700 leading-none">{user?.userName || '사용자'} 님</span>
                                     </div>
                                 </div>
@@ -176,7 +191,7 @@ const Navbar = () => {
                                 <button
                                     onClick={handleLogoutClick}
                                     className="text-[11px] font-black text-rose-500 px-4 py-2 hover:bg-rose-50 rounded-xl transition-all"
-                                >LOGOUT</button>
+                                >로그아웃</button>
                             </>
                         ) : (
                             // 비로그인 상태일 때는 시스템 접속 버튼 대신 여백만 유지하거나 생략
@@ -186,7 +201,7 @@ const Navbar = () => {
                 </nav>
             </div>
 
-            {/* 로그아웃 확인 모달 */ }
+            {/* 로그아웃 확인 모달 */}
             <ConfirmModal
                 isOpen={isLogoutModalOpen}
                 title="로그아웃 확인"

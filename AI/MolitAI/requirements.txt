@@ -6,3 +6,10 @@ numpy
 joblib
 scikit-learn
 lightgbm
+faiss-cpu
+sentence-transformers
+rank-bm25
+pypdf
+requests
+httpx
+python-dotenv

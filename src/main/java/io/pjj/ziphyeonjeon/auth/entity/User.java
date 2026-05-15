@@ -36,8 +36,12 @@ public class User {
     @Column(name = "INCOME_LEVEL")
     private String incomeLevel;
 
+    @Builder.Default
     @Column(name = "USER_TYPE")
-    private String userType;
+    private String userType = "ROLE_USER";
+
+    @Column(name = "PROVIDER")
+    private String provider;
 
     @CreationTimestamp
     @Column(name = "CREATED_TIME", updatable = false)

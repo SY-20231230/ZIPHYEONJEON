@@ -3,15 +3,24 @@
 @tailwind utilities;
 
 body {
-  margin: 0;
-  font-family: 'Pretendard', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+    font-family: 'Pretendard', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
 }
 
 /* 주신 HTML에 있던 애니메이션 클래스 */
-.reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s ease; }
-.reveal.active { opacity: 1; transform: translateY(0); }
+.reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s ease;
+}
+
+.reveal.active {
+    opacity: 1;
+    transform: translateY(0);
+}
 
 /* 국정 시스템 전용 색상 변수 */
 :root {
@@ -22,19 +31,39 @@ body {
 
 /* 부드러운 등장 애니메이션 */
 @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* AI 캐릭터 부유 효과 */
 @keyframes float {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-    100% { transform: translateY(0px); }
+    0% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+
+    100% {
+        transform: translateY(0px);
+    }
 }
 
-.animate-fadeInUp { animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
-.character-float { animation: float 3s ease-in-out infinite; }
+.animate-fadeInUp {
+    animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.character-float {
+    animation: float 3s ease-in-out infinite;
+}
 
 .glass-card {
     background: rgba(255, 255, 255, 0.8);

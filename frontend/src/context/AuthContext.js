@@ -44,6 +44,16 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         const initAuth = async () => {
+            // URL에서 소셜 로그인 후 넘어온 JWT 토큰 가로채기
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlToken = urlParams.get('token');
+
+            if (urlToken) {
+                sessionStorage.setItem('accessToken', urlToken);
+                // 보안을 위해 URL에서 토큰 파라미터 제거
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
             const storedToken = sessionStorage.getItem('accessToken');
             if (storedToken) {
                 await updateAuthState(storedToken);

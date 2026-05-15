@@ -56,7 +56,7 @@ const AIBiddingSuggestionPage = () => {
     return (
         <div className="p-8 max-w-4xl mx-auto space-y-8 bg-[#F8FAFC] min-h-screen font-sans">
             <header className="mb-10 text-center">
-                <h1 className="text-4xl font-black text-[#002855] tracking-tighter italic">AI BIDDING <span className="text-blue-500 font-light">SUGGESTION</span></h1>
+                <h1 className="text-4xl font-black text-[#002855] tracking-tighter italic">AI 적정 입찰가 <span className="text-blue-500 font-light">제안</span></h1>
                 <p className="text-slate-500 mt-2 text-sm font-bold">호가, 연식, 층수를 바탕으로 최적의 협상/입찰 가격을 제안합니다</p>
             </header>
 
@@ -65,7 +65,7 @@ const AIBiddingSuggestionPage = () => {
                     {/* 입력 폼 */}
                     <div className="space-y-6">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-blue-600 uppercase">Property Type</label>
+                            <label className="text-[10px] font-black text-blue-600 uppercase">매물 종류</label>
                             <select name="property_type" value={inputs.property_type} onChange={handleInputChange} className="w-full bg-slate-50 p-4 rounded-2xl font-bold border-none focus:ring-2 focus:ring-blue-500">
                                 <option value="아파트">아파트</option>
                                 <option value="연립다세대">연립다세대 (빌라)</option>
@@ -74,27 +74,27 @@ const AIBiddingSuggestionPage = () => {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-blue-600 uppercase">Location (주소)</label>
+                            <label className="text-[10px] font-black text-blue-600 uppercase">매물 주소</label>
                             <input name="location" value={inputs.location} onChange={handleInputChange} placeholder="예: 서울특별시 강남구 역삼동" className="w-full bg-slate-50 p-4 rounded-2xl font-bold border-none focus:ring-2 focus:ring-blue-500" />
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-blue-600 uppercase">Area (전용면적 ㎡)</label>
+                            <label className="text-[10px] font-black text-blue-600 uppercase">전용면적 (㎡)</label>
                             <input type="number" name="area_m2" value={inputs.area_m2} onChange={handleInputChange} placeholder="예: 84" className="w-full bg-slate-50 p-4 rounded-2xl font-bold border-none focus:ring-2 focus:ring-blue-500" />
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-blue-600 uppercase">Target Price (현재 호가 - 만원)</label>
+                            <label className="text-[10px] font-black text-blue-600 uppercase">현재 호가 (단위: 만원)</label>
                             <input type="number" name="current_price" value={inputs.current_price} onChange={handleInputChange} placeholder="예: 150000 (15억)" className="w-full bg-slate-50 p-4 rounded-2xl font-bold border-none focus:ring-2 focus:ring-blue-500" />
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-blue-600 uppercase">Built Year</label>
+                                <label className="text-[10px] font-black text-blue-600 uppercase">준공 연도</label>
                                 <input type="number" name="built_year" value={inputs.built_year} onChange={handleInputChange} placeholder="예: 2018" className="w-full bg-slate-50 p-4 rounded-2xl font-bold border-none focus:ring-2 focus:ring-blue-500" />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-blue-600 uppercase">Floor</label>
+                                <label className="text-[10px] font-black text-blue-600 uppercase">층수</label>
                                 <input type="number" name="floor" value={inputs.floor} onChange={handleInputChange} placeholder="예: 15" className="w-full bg-slate-50 p-4 rounded-2xl font-bold border-none focus:ring-2 focus:ring-blue-500" />
                             </div>
                         </div>
@@ -119,7 +119,7 @@ const AIBiddingSuggestionPage = () => {
                                 </div>
                                 
                                 <div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">AI Suggested Price</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">AI 제안 적정가</p>
                                     <h2 className="text-5xl font-black text-slate-900 tracking-tighter">
                                         {result.suggested_price.toLocaleString()} <span className="text-lg font-bold text-slate-500">만원</span>
                                     </h2>
@@ -132,7 +132,7 @@ const AIBiddingSuggestionPage = () => {
                                     
                                     {result.calculation_basis.adjustments.length > 0 && (
                                         <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
-                                            <p className="text-[10px] font-black text-slate-400 uppercase mb-2">Applied Adjustments</p>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase mb-2">보정 항목 적용</p>
                                             <ul className="space-y-1">
                                                 {result.calculation_basis.adjustments.map((adj, idx) => (
                                                     <li key={idx} className="text-xs font-bold text-slate-700 flex items-center gap-2">
@@ -147,7 +147,7 @@ const AIBiddingSuggestionPage = () => {
                         ) : (
                             <div className="text-slate-400 text-sm font-bold uppercase tracking-widest opacity-50">
                                 <span className="text-4xl block mb-4">🤖</span>
-                                Enter property details <br/>to get AI suggestion
+                                매물 상세 정보를 입력하면<br/>AI 적정가 제안이 시작됩니다
                             </div>
                         )}
                     </div>

@@ -5,16 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChatMessageResponse {
-    private Long messageId;
-    private String senderType;
-    private String messageContent;
+public class ChatRoomResponse {
+    private Long roomId;
+    private String title;
     private LocalDateTime createdAt;
-    private List<ReferenceDto> references;
+    private String lastMessage;
 }
