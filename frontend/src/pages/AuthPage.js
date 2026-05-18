@@ -98,7 +98,7 @@ const AuthPage = () => {
             } else {
                 const result = await authSignup(formData);
                 if (result.success) {
-                    alert('권한 신청이 완료되었습니다. 승인 후 로그인 가능합니다.');
+                    alert('가입 신청이 완료되었습니다. 이제 로그인이 가능합니다.');
                     setMode('login');
                 } else {
                     setErrorMsg(result.message);
@@ -136,10 +136,6 @@ const AuthPage = () => {
                 <section className="relative w-full min-h-[75vh] flex flex-col justify-center p-12 lg:p-16 overflow-hidden">
                     <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-50/60 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
                     <div className="relative z-10 space-y-8 animate-[fadeInUp_1s_ease-out]">
-                        <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-slate-50 text-blue-600 text-xs font-black rounded-full border border-blue-100 tracking-widest uppercase shadow-sm">
-                            <span className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse" />
-                            2026.04.28 Ver. 9.0
-                        </span>
                         <h1 className="text-7xl lg:text-8xl font-black tracking-tighter text-slate-900 leading-[0.9]">
                             집현전<br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">ZIPHYEONJEON</span>
@@ -288,89 +284,89 @@ const AuthPage = () => {
                 <div className="lg:sticky lg:top-0 lg:h-screen w-full flex flex-col items-center justify-center p-8 overflow-hidden">
 
 
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"></div>
 
-                <div className="w-full max-w-[420px] relative z-10">
+                    <div className="w-full max-w-[420px] relative z-10">
 
-                    <div className="bg-white/5 backdrop-blur-xl p-10 lg:p-12 rounded-[56px] border border-white/10 shadow-2xl">
-                        <div className="flex bg-white/5 p-1.5 rounded-[24px] mb-12">
-                            <button onClick={() => setMode('login')} className={`flex-1 py-4 rounded-[20px] text-sm font-black transition-all ${mode === 'login' ? 'bg-white text-[#001A3D]' : 'text-slate-500 hover:text-slate-300'}`}>로그인</button>
-                            <button onClick={() => setMode('signup')} className={`flex-1 py-4 rounded-[20px] text-sm font-black transition-all ${mode === 'signup' ? 'bg-white text-[#001A3D]' : 'text-slate-500 hover:text-slate-300'}`}>회원가입</button>
-                        </div>
-
-                        <form onSubmit={handleSubmit} className="space-y-8" autoComplete="off">
-                            <div>
-                                <h3 className="text-3xl font-black text-white tracking-tighter">{mode === 'login' ? '로그인 인증' : '신규 권한 신청'}</h3>
-                                {errorMsg && <p className="text-red-400 text-xs font-bold mt-2 animate-pulse">⚠ {errorMsg}</p>}
+                        <div className="bg-white/5 backdrop-blur-xl p-7 lg:p-8 rounded-[40px] border border-white/10 shadow-2xl">
+                            <div className="flex bg-white/5 p-1 rounded-[16px] mb-6">
+                                <button onClick={() => setMode('login')} className={`flex-1 py-2.5 rounded-[12px] text-xs font-black transition-all ${mode === 'login' ? 'bg-white text-[#001A3D]' : 'text-slate-500 hover:text-slate-300'}`}>로그인</button>
+                                <button onClick={() => setMode('signup')} className={`flex-1 py-2.5 rounded-[12px] text-xs font-black transition-all ${mode === 'signup' ? 'bg-white text-[#001A3D]' : 'text-slate-500 hover:text-slate-300'}`}>회원가입</button>
                             </div>
 
-                            <div className="space-y-4">
-                                <input
-                                    name="email"
-                                    type="text"
-                                    placeholder="아이디 (이메일)"
-                                    required
-                                    className="w-full px-8 py-5 bg-white/5 border border-white/10 rounded-2xl text-white outline-none font-medium"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                />
+                            <form onSubmit={handleSubmit} className="space-y-5" autoComplete="off">
                                 <div>
-                                    <input name="password" type="password" placeholder="비밀번호" required className="w-full px-8 py-5 bg-white/5 border border-white/10 rounded-2xl text-white outline-none font-medium" onChange={handleChange} />
-                                    {mode === 'signup' && formData.password && (
-                                        <div className="mt-2 px-2 flex items-center justify-between">
-                                            <div className="h-1 flex-1 bg-white/10 rounded-full overflow-hidden flex">
-                                                <div className={`h-full transition-all duration-300 ${pwdStrength.color}`}></div>
+                                    <h3 className="text-2xl font-black text-white tracking-tighter">{mode === 'login' ? '로그인 인증' : '신규 가입 신청'}</h3>
+                                    {errorMsg && <p className="text-red-400 text-xs font-bold mt-2 animate-pulse">⚠ {errorMsg}</p>}
+                                </div>
+
+                                <div className="space-y-3">
+                                    <input
+                                        name="email"
+                                        type="text"
+                                        placeholder="아이디 (이메일)"
+                                        required
+                                        className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white outline-none font-medium text-sm"
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                    />
+                                    <div>
+                                        <input name="password" type="password" placeholder="비밀번호" required className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white outline-none font-medium text-sm" onChange={handleChange} />
+                                        {mode === 'signup' && formData.password && (
+                                            <div className="mt-2 px-2 flex items-center justify-between">
+                                                <div className="h-1 flex-1 bg-white/10 rounded-full overflow-hidden flex">
+                                                    <div className={`h-full transition-all duration-300 ${pwdStrength.color}`}></div>
+                                                </div>
+                                                <span className={`ml-3 text-[10px] font-black tracking-widest uppercase ${pwdStrength.text}`}>{pwdStrength.label}</span>
                                             </div>
-                                            <span className={`ml-3 text-[10px] font-black tracking-widest uppercase ${pwdStrength.text}`}>{pwdStrength.label}</span>
-                                        </div>
+                                        )}
+                                    </div>
+
+                                    {mode === 'signup' && (
+                                        <>
+                                            <input name="userName" placeholder="성명" required className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white outline-none font-medium text-sm" onChange={handleChange} />
+
+                                            {/* 선택 항목들 */}
+                                            <div className="pt-3 border-t border-white/10">
+                                                <p className="text-[11px] text-slate-400 font-bold mb-2">추가 정보 (선택 사항)</p>
+                                                <input name="creditScore" type="number" placeholder="신용점수 (예: 750)" className="w-full px-5 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white outline-none font-medium text-sm mb-3" onChange={handleChange} />
+
+                                                <select name="familyType" className="w-full px-5 py-3.5 bg-[#1e293b] border border-white/10 rounded-xl text-white outline-none mb-3 text-sm" onChange={handleChange} value={formData.familyType}>
+                                                    <option value="1인 가구">1인 가구</option>
+                                                    <option value="2인 가구">2인 가구</option>
+                                                    <option value="다자녀 가구">다자녀 가구</option>
+                                                </select>
+
+                                                <select name="incomeLevel" className="w-full px-5 py-3.5 bg-[#1e293b] border border-white/10 rounded-xl text-white outline-none text-sm" onChange={handleChange} value={formData.incomeLevel}>
+                                                    <option value="상">소득 수준: 상</option>
+                                                    <option value="중">소득 수준: 중</option>
+                                                    <option value="하">소득 수준: 하</option>
+                                                </select>
+                                            </div>
+                                        </>
                                     )}
                                 </div>
 
-                                {mode === 'signup' && (
-                                    <>
-                                        <input name="userName" placeholder="성명" required className="w-full px-8 py-5 bg-white/5 border border-white/10 rounded-2xl text-white outline-none font-medium" onChange={handleChange} />
+                                <button type="submit" disabled={isLoading} className={`w-full py-3.5 rounded-xl font-black text-base transition-all shadow-lg ${isLoading ? 'bg-slate-700 text-slate-400 cursor-not-allowed' : 'bg-blue-600 text-white shadow-blue-900/40 hover:bg-blue-500 hover:-translate-y-1'}`}>
+                                    {isLoading ? "처리 중..." : (mode === 'login' ? '시스템 접속하기' : '가입 심사 요청')}
+                                </button>
 
-                                        {/* 선택 항목들 */}
-                                        <div className="pt-4 border-t border-white/10">
-                                            <p className="text-xs text-slate-400 font-bold mb-3">추가 정보 (선택 사항)</p>
-                                            <input name="creditScore" type="number" placeholder="신용점수 (예: 750)" className="w-full px-8 py-5 bg-white/5 border border-white/10 rounded-2xl text-white outline-none font-medium mb-4" onChange={handleChange} />
-
-                                            <select name="familyType" className="w-full px-8 py-5 bg-[#1e293b] border border-white/10 rounded-2xl text-white outline-none mb-4" onChange={handleChange} value={formData.familyType}>
-                                                <option value="1인 가구">1인 가구</option>
-                                                <option value="2인 가구">2인 가구</option>
-                                                <option value="다자녀 가구">다자녀 가구</option>
-                                            </select>
-
-                                            <select name="incomeLevel" className="w-full px-8 py-5 bg-[#1e293b] border border-white/10 rounded-2xl text-white outline-none" onChange={handleChange} value={formData.incomeLevel}>
-                                                <option value="상">소득 수준: 상</option>
-                                                <option value="중">소득 수준: 중</option>
-                                                <option value="하">소득 수준: 하</option>
-                                            </select>
+                                {mode === 'login' && (
+                                    <div className="pt-4 border-t border-white/10 mt-4">
+                                        <p className="text-center text-[11px] text-slate-400 font-bold mb-3">소셜 계정으로 빠른 시작</p>
+                                        <div className="flex gap-4">
+                                            <a href={`${process.env.REACT_APP_API_URL || 'http://localhost:8080'}/oauth2/authorization/kakao`} className="flex-1 py-3 bg-[#FEE500] hover:bg-[#FDD800] text-[#000000] rounded-xl font-black text-xs flex justify-center items-center gap-1.5 transition-all hover:-translate-y-1 shadow-lg">
+                                                <span>💬 카카오 로그인</span>
+                                            </a>
+                                            <a href={`${process.env.REACT_APP_API_URL || 'http://localhost:8080'}/oauth2/authorization/google`} className="flex-1 py-3 bg-white hover:bg-slate-50 text-slate-700 rounded-xl font-black text-xs flex justify-center items-center gap-1.5 transition-all hover:-translate-y-1 shadow-lg border border-slate-200">
+                                                <span>🌐 구글 로그인</span>
+                                            </a>
                                         </div>
-                                    </>
-                                )}
-                            </div>
-
-                            <button type="submit" disabled={isLoading} className={`w-full py-5 rounded-2xl font-black text-lg transition-all shadow-lg ${isLoading ? 'bg-slate-700 text-slate-400 cursor-not-allowed' : 'bg-blue-600 text-white shadow-blue-900/40 hover:bg-blue-500 hover:-translate-y-1'}`}>
-                                {isLoading ? "처리 중..." : (mode === 'login' ? '시스템 접속하기' : '가입 심사 요청')}
-                            </button>
-
-                            {mode === 'login' && (
-                                <div className="pt-6 border-t border-white/10 mt-6">
-                                    <p className="text-center text-xs text-slate-400 font-bold mb-4">소셜 계정으로 빠른 시작</p>
-                                    <div className="flex gap-4">
-                                        <a href={`${process.env.REACT_APP_API_URL || 'http://localhost:8080'}/oauth2/authorization/kakao`} className="flex-1 py-4 bg-[#FEE500] hover:bg-[#FDD800] text-[#000000] rounded-2xl font-black text-sm flex justify-center items-center gap-2 transition-all hover:-translate-y-1 shadow-lg">
-                                            <span>💬 카카오 로그인</span>
-                                        </a>
-                                        <a href={`${process.env.REACT_APP_API_URL || 'http://localhost:8080'}/oauth2/authorization/google`} className="flex-1 py-4 bg-white hover:bg-slate-50 text-slate-700 rounded-2xl font-black text-sm flex justify-center items-center gap-2 transition-all hover:-translate-y-1 shadow-lg border border-slate-200">
-                                            <span>🌐 구글 로그인</span>
-                                        </a>
                                     </div>
-                                </div>
-                            )}
-                        </form>
+                                )}
+                            </form>
+                        </div>
                     </div>
-                </div>
                 </div>
             </div>
         </div>

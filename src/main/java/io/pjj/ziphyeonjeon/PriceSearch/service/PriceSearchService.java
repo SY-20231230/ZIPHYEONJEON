@@ -945,6 +945,7 @@ public class PriceSearchService {
                 .roadAddress((String) row[2])
                 .totalTransactions((Long) row[3])
                 .propertyType((String) row[4])
+                .sigungu((String) row[5])
                 .build());
     }
 

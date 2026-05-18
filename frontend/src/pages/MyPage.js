@@ -19,6 +19,26 @@ const MyPage = () => {
     const [aiHistory, setAiHistory] = useState([]);     
     const [isLoading, setIsLoading] = useState(true);
 
+    const handleWheel = (e) => {
+        if (Math.abs(e.deltaX) > 0) {
+            return;
+        }
+
+        const container = e.currentTarget;
+        const scrollAmount = e.deltaY;
+
+        if (scrollAmount !== 0) {
+            const isScrollingRight = scrollAmount > 0;
+            const isAtRightEnd = container.scrollLeft >= (container.scrollWidth - container.clientWidth - 1);
+            const isAtLeftEnd = container.scrollLeft <= 0;
+
+            if ((isScrollingRight && !isAtRightEnd) || (!isScrollingRight && !isAtLeftEnd)) {
+                e.preventDefault();
+                container.scrollLeft += scrollAmount;
+            }
+        }
+    };
+
     const fetchMyData = async () => {
         setIsLoading(true);
         try {
@@ -109,12 +129,12 @@ const MyPage = () => {
                         <h3 className="text-2xl font-black text-slate-900 tracking-tighter flex items-center gap-4 italic">
                             <span className="w-2 h-8 bg-blue-600 rounded-full"></span>최근 본 매물
                         </h3>
-                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest animate-pulse">Shift + 마우스 휠로 가로 스크롤 가능 →</span>
+                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest animate-pulse">마우스 휠로 가로 스크롤 가능 →</span>
                     </header>
 
                     {recentViews.length > 0 ? (
                         /* flex-nowrap과 overflow-x-auto를 통해 가로 스크롤 박스 생성 */
-                        <div className="flex flex-nowrap gap-6 overflow-x-auto pb-8 snap-x scrollbar-hide">
+                        <div onWheel={handleWheel} className="flex flex-nowrap gap-6 overflow-x-auto pb-8 snap-x scrollbar-hide">
                             {recentViews.map((item, idx) => {
                                 const base = item.house || item;
                                 return (
@@ -138,12 +158,15 @@ const MyPage = () => {
 
                 {/* 2. My Favorites - Horizontal Swipe */}
                 <section className="bg-white p-12 rounded-[56px] shadow-sm border border-slate-100">
-                    <h3 className="text-2xl font-black text-slate-900 tracking-tighter flex items-center gap-4 italic mb-10">
-                        <span className="w-2 h-8 bg-rose-500 rounded-full"></span>내가 찜한 매물
-                    </h3>
+                    <header className="flex justify-between items-center mb-10">
+                        <h3 className="text-2xl font-black text-slate-900 tracking-tighter flex items-center gap-4 italic">
+                            <span className="w-2 h-8 bg-rose-500 rounded-full"></span>내가 찜한 매물
+                        </h3>
+                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest animate-pulse">마우스 휠로 가로 스크롤 가능 →</span>
+                    </header>
 
                     {favorites.length > 0 ? (
-                        <div className="flex flex-nowrap gap-6 overflow-x-auto pb-8 snap-x scrollbar-hide">
+                        <div onWheel={handleWheel} className="flex flex-nowrap gap-6 overflow-x-auto pb-8 snap-x scrollbar-hide">
                             {favorites.map((fav, idx) => {
                                 const hId = fav.houseId || fav.HOUSE_ID;
                                 return (
@@ -170,11 +193,11 @@ const MyPage = () => {
                         <h3 className="text-2xl font-black text-white tracking-tighter flex items-center gap-4 italic">
                             <span className="w-2 h-8 bg-blue-500 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.5)]"></span>AI 분석 기록
                         </h3>
-                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest animate-pulse">오른쪽으로 밀어서 확인 →</span>
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest animate-pulse">마우스 휠로 가로 스크롤 가능 →</span>
                     </header>
 
                     {aiHistory.length > 0 ? (
-                        <div className="flex flex-nowrap gap-6 overflow-x-auto pb-8 snap-x scrollbar-hide relative z-10">
+                        <div onWheel={handleWheel} className="flex flex-nowrap gap-6 overflow-x-auto pb-8 snap-x scrollbar-hide relative z-10">
                             {aiHistory.map((report, idx) => (
                                 /* 💡 shrink-0 추가: 너비 보장 */
                                 <div key={idx} onClick={() => handleItemClick(report)} className="min-w-[360px] shrink-0 snap-start p-8 bg-white/5 border border-white/10 rounded-[45px] hover:bg-white/10 transition-all cursor-pointer group flex flex-col justify-between">

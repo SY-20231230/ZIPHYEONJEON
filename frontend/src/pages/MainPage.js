@@ -38,7 +38,7 @@ const MainPage = () => {
         {
             id: 'ai',
             title: 'AI 분석',
-            desc: 'LightGBM 기반 상가 임대료 및 주택 거래가 미래 예측',
+            desc: '상가 임대료 및 주택 실거래가 예측',
             icon: '🤖',
             path: '/ai/commercial',
             color: 'border-purple-100 bg-purple-50/30'
@@ -126,7 +126,7 @@ const MainPage = () => {
 
             {/* [Footer] */}
             <footer className="bg-slate-900 py-16 text-center">
-                <div className="text-white font-black text-2xl italic tracking-tighter opacity-50">JIPHYEONJEON <span className="text-blue-500 not-italic text-sm ml-1">AI 분석 센터</span></div>
+                <div className="text-white font-black text-2xl italic tracking-tighter opacity-50">집현전 <span className="text-blue-500 not-italic text-sm ml-1">부동산 데이터 분석 서비스</span></div>
                 <p className="text-slate-600 text-[10px] font-bold mt-4 tracking-[0.5em]">© 2026 집현전 ALL RIGHTS RESERVED.</p>
             </footer>
         </div>

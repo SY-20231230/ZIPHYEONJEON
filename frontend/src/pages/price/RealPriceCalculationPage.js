@@ -69,6 +69,13 @@ const RealPriceCalculationPage = () => {
      */
     const handleComplexClick = async (item) => {
         const masterId = item.representativeHouseId || item.houseId;
+
+        let targetGugun = searchParams.gugun;
+        if (item.sigungu) {
+            const tokens = item.sigungu.split(' ');
+            targetGugun = tokens[tokens.length - 1] || item.sigungu;
+        }
+
         setIsCalculating(true);
         try {
             const [profileRes, trendRes] = await Promise.all([
@@ -89,6 +96,9 @@ const RealPriceCalculationPage = () => {
                 // /api/price/trend API는 PriceTrendResponse { trends: [...] } 형식을 반환합니다.
                 trendGraph: trendRes.data.trends || []
             }));
+
+            // 타이틀 및 필터 상태에 구(Gugun) 이름 반영
+            setSearchParams(prev => ({ ...prev, gugun: targetGugun }));
 
             // [찜 여부 확인]
             try {
@@ -137,7 +147,7 @@ const RealPriceCalculationPage = () => {
 
             <main className="bg-white p-12 rounded-[50px] shadow-2xl border border-slate-100 space-y-10">
                 {/* 01. 주소 직접 검색 구역 */}
-                <div 
+                <div
                     className={`space-y-4 transition-all duration-300 cursor-pointer p-4 rounded-[30px] ${activeMode === 'FILTER' ? 'opacity-30 grayscale' : 'bg-blue-50/30'}`}
                     onClick={() => setActiveMode('ADDRESS')}
                 >
@@ -157,7 +167,7 @@ const RealPriceCalculationPage = () => {
                             disabled={activeMode === 'FILTER'}
                             className="absolute right-3 top-3 bottom-3 px-10 bg-blue-600 text-white rounded-[24px] font-black hover:bg-blue-700 transition-all active:scale-95 disabled:opacity-50 shadow-xl flex items-center gap-2"
                         >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                             매물 찾기
                         </button>
                     </div>
@@ -166,12 +176,12 @@ const RealPriceCalculationPage = () => {
                 {/* 구분선 */}
                 <div className="relative flex items-center py-2">
                     <div className="flex-grow border-t border-slate-100"></div>
-                    <span className="flex-none mx-4 text-[10px] font-black text-slate-300 tracking-widest bg-white px-4 py-1 rounded-full border border-slate-100">OR</span>
+                    <span className="flex-none mx-4 text-[10px] font-black text-slate-300 tracking-widest bg-white px-4 py-1 rounded-full border border-slate-100">또는</span>
                     <div className="flex-grow border-t border-slate-100"></div>
                 </div>
 
                 {/* 02. 지역 필터 구역 */}
-                <div 
+                <div
                     className={`space-y-4 transition-all duration-300 cursor-pointer p-4 rounded-[30px] ${activeMode === 'ADDRESS' ? 'opacity-30 grayscale' : 'bg-blue-50/30'}`}
                     onClick={() => setActiveMode('FILTER')}
                 >
@@ -217,7 +227,7 @@ const RealPriceCalculationPage = () => {
                             onClick={(e) => { e.stopPropagation(); handleSearch('FILTER'); }}
                             className="px-10 py-5 bg-blue-600 text-white rounded-[24px] font-black shadow-xl hover:bg-blue-700 transition-all active:scale-95 flex items-center gap-2"
                         >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                             조건으로 조회
                         </button>
                     </div>
@@ -262,7 +272,7 @@ const RealPriceCalculationPage = () => {
                                         </button>
                                         <div>
                                             <div className="flex items-center gap-3 mb-1">
-                                                <span className="bg-slate-900 text-white px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter">Official Profile</span>
+                                                <span className="bg-slate-900 text-white px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter">프로필</span>
                                                 <h2 className="text-4xl font-black text-slate-900 tracking-tighter italic">{selectedProfile.complexName}</h2>
                                             </div>
                                             <p className="text-slate-400 font-bold text-xs uppercase">{selectedProfile.roadAddress}</p>
@@ -289,7 +299,7 @@ const RealPriceCalculationPage = () => {
 
                             <section className="bg-white p-12 rounded-[56px] shadow-sm border border-slate-100">
                                 <div className="flex justify-between items-center mb-10">
-                                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">Regional Market Trend (지역 시장 가격 추이)</h3>
+                                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">지역 시장 가격 추이</h3>
                                     <p className="text-[9px] font-bold text-blue-500 bg-blue-50 px-3 py-1 rounded-full uppercase">※ {searchParams.gugun} 전체 평균 데이터</p>
                                 </div>
                                 <div className="h-[350px] w-full">

@@ -11,4 +11,5 @@ public class PropertyDirectoryResponse {
     private String roadAddress;         // 도로명 주소
     private Long totalTransactions;     // 해당 단지의 누적 실거래 건수
     private String propertyType;        // 매물 유형 (아파트, 연립다세대, 오피스텔)
+    private String sigungu;             // 시군구 정보
 }
