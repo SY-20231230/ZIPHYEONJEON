@@ -312,7 +312,7 @@ const ResidentialPredictPage = () => {
             {Object.keys(multiResults).length > 0 ? (
               <>
                 <div>
-                  <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1">Target Valuation</p>
+                  <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1">예상 가격</p>
                   <h2 className="text-6xl font-black text-blue-400">
                     {(multiResults[inputs.targetMonth]?.predictedPrice || Object.values(multiResults)[0]?.predictedPrice)?.toLocaleString()}
                     <span className="text-2xl font-light italic ml-1">만원</span>
